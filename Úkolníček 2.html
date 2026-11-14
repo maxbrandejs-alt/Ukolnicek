@@ -1,0 +1,1952 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Úkolníček</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: two-pane app — warm off-white sidebar with views + projects, centered single-column task list */
+:root{
+  --bg:#ffffff; --side:#fcfaf8; --surface:#ffffff; --hover:#f6f3f0; --active:#fbe9e6;
+  --line:#ece8e4; --line-2:#e0dbd6;
+  --fg:#202020; --fg-2:#5e5a57; --fg-3:#98928d;
+  --accent:#DC4C3E; --accent-fg:#ffffff; --accent-soft:#fdeeec; --accent-text:#c53727;
+  --p1:#D1453B; --p2:#EB8909; --p3:#246FE0; --p4:#8f8a85;
+  --today:#058527; --tomorrow:#692EC2; --overdue:#D1453B; --week:#b46a00;
+  --shadow:0 1px 2px rgba(40,25,15,.06),0 8px 28px rgba(40,25,15,.12);
+  --backdrop:rgba(30,20,15,.35);
+  --font:"Onest",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#1f1f1f; --side:#262524; --surface:#2a2928; --hover:#323130; --active:#3d2a27;
+  --line:#363433; --line-2:#44413f;
+  --fg:#ececea; --fg-2:#b3afab; --fg-3:#807b77;
+  --accent:#E5594B; --accent-fg:#ffffff; --accent-soft:#3b2724; --accent-text:#ff8a7e;
+  --p1:#FF7066; --p2:#FF9A14; --p3:#5297FF; --p4:#8a8580;
+  --today:#3cc164; --tomorrow:#ae7bff; --overdue:#ff7066; --week:#f0a53a;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 10px 32px rgba(0,0,0,.45);
+  --backdrop:rgba(0,0,0,.55); color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --bg:#1f1f1f; --side:#262524; --surface:#2a2928; --hover:#323130; --active:#3d2a27;
+  --line:#363433; --line-2:#44413f;
+  --fg:#ececea; --fg-2:#b3afab; --fg-3:#807b77;
+  --accent:#E5594B; --accent-fg:#ffffff; --accent-soft:#3b2724; --accent-text:#ff8a7e;
+  --p1:#FF7066; --p2:#FF9A14; --p3:#5297FF; --p4:#8a8580;
+  --today:#3cc164; --tomorrow:#ae7bff; --overdue:#ff7066; --week:#f0a53a;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 10px 32px rgba(0,0,0,.45);
+  --backdrop:rgba(0,0,0,.55); color-scheme:dark;
+}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--font);font-size:14px;line-height:1.45;overflow:hidden}
+*{box-sizing:border-box}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;padding:0}
+input,textarea,select{font:inherit;color:inherit}
+svg.i{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
+
+.app{display:grid;grid-template-columns:280px minmax(0,1fr);height:100%}
+/* Sidebar */
+.side{background:var(--side);border-right:1px solid var(--line);display:flex;flex-direction:column;min-height:0;padding:14px 10px 10px max(10px,env(safe-area-inset-left,0px))}
+.brand{display:flex;align-items:center;gap:10px;padding:4px 8px 14px;font-weight:700;font-size:16px;letter-spacing:-.01em}
+.brand-mark{width:26px;height:26px;border-radius:8px;background:var(--accent);display:grid;place-items:center;color:#fff}
+.brand-mark svg{width:16px;height:16px;stroke-width:2.6}
+.nav{display:flex;flex-direction:column;gap:1px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:7px 8px;border-radius:7px;color:var(--fg);text-align:left;width:100%;transition:background .12s}
+.nav-item:hover{background:var(--hover)}
+.nav-item.on{background:var(--active);color:var(--accent-text);font-weight:500}
+.nav-item .count{margin-left:auto;font-size:12px;color:var(--fg-3);font-variant-numeric:tabular-nums}
+.nav-item.on .count{color:var(--accent-text)}
+.nav-item.drop-hit{background:var(--accent-soft);box-shadow:inset 0 0 0 1.5px var(--accent)}
+.ic-inbox{color:#246FE0}.ic-today{color:#058527}.ic-up{color:#692EC2}.ic-filter{color:#EB8909}.ic-done{color:var(--fg-3)}
+:root[data-theme="dark"] .ic-inbox{color:#5297FF}
+.side-scroll{overflow-y:auto;flex:1;min-height:0;margin-top:14px}
+.sec-head{display:flex;align-items:center;justify-content:space-between;padding:6px 8px;color:var(--fg-2);font-weight:600;font-size:13px}
+.icon-btn{width:28px;height:28px;border-radius:6px;display:grid;place-items:center;color:var(--fg-2)}
+.icon-btn:hover{background:var(--hover);color:var(--fg)}
+.dot{width:10px;height:10px;border-radius:50%;flex:none;margin:0 4px}
+.proj-item.drop-before{box-shadow:inset 0 2px 0 var(--accent)}
+.proj-item.drop-after{box-shadow:inset 0 -2px 0 var(--accent)}
+.side-foot{border-top:1px solid var(--line);padding-top:8px;margin-top:8px;display:flex;gap:4px;align-items:center}
+.side-foot .nav-item{width:auto;flex:1;color:var(--fg-2)}
+.kbd-hint{font-size:12px;color:var(--fg-3);padding:4px 8px 0}
+kbd{font-family:inherit;font-size:11px;border:1px solid var(--line-2);border-bottom-width:2px;border-radius:4px;padding:0 5px;color:var(--fg-2);background:var(--surface)}
+
+/* Main */
+.main{display:flex;flex-direction:column;min-height:0;min-width:0}
+.topbar{display:flex;align-items:center;gap:8px;padding:10px max(16px,env(safe-area-inset-right,0px)) 10px max(16px,env(safe-area-inset-left,0px));border-bottom:1px solid transparent}
+.menu-btn{display:none}
+.search{flex:1;max-width:420px;display:flex;align-items:center;gap:8px;background:var(--hover);border:1px solid transparent;border-radius:8px;padding:0 10px;height:34px;color:var(--fg-3)}
+.search:focus-within{background:var(--surface);border-color:var(--line-2)}
+.search input{border:0;background:none;outline:none;flex:1;min-width:0;height:100%;color:var(--fg)}
+.add-btn{margin-left:auto;display:flex;align-items:center;gap:6px;background:var(--accent);color:var(--accent-fg);border-radius:8px;padding:0 12px;height:34px;font-weight:600}
+.add-btn:hover{filter:brightness(1.06)}
+.content{flex:1;overflow-y:auto;min-height:0}
+.wrap{max-width:780px;margin:0 auto;padding:18px max(16px,env(safe-area-inset-right,0px)) 80px max(16px,env(safe-area-inset-left,0px))}
+.view-head{display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;margin:8px 0 18px}
+.view-head h1{font-size:24px;line-height:1.2;font-weight:700;margin:0;letter-spacing:-.02em;text-wrap:balance;display:flex;align-items:center;gap:6px}
+.view-sub{color:var(--fg-3);font-size:13px;margin-top:4px}
+.view-actions{margin-left:auto;display:flex;gap:4px}
+.ghost{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:7px;color:var(--fg-2);font-size:13px}
+.ghost:hover{background:var(--hover);color:var(--fg)}
+.ghost.danger:hover{color:var(--overdue)}
+.note{display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:var(--hover);border-radius:10px;padding:10px 14px;color:var(--fg-2);font-size:13px;margin-bottom:16px}
+.note button{color:var(--accent-text);font-weight:600}
+
+.group{margin-bottom:26px}
+.group-head{display:flex;align-items:baseline;gap:8px;padding:0 0 8px;border-bottom:1px solid var(--line);font-weight:700;font-size:14px}
+.group-head .gsub{color:var(--fg-3);font-weight:400;font-size:13px}
+.group-head .ghost{margin-left:auto;padding:2px 8px;color:var(--accent-text);font-weight:500}
+.group-head.overdue{color:var(--fg)}
+
+.list{min-height:2px}
+.list.drop-zone-hit{background:var(--accent-soft);border-radius:8px;min-height:40px}
+.task{position:relative;display:flex;align-items:flex-start;gap:10px;padding:10px 6px 10px 4px;border-bottom:1px solid var(--line);background:var(--bg);transition:opacity .25s,max-height .26s ease,padding .26s ease}
+.task:hover{background:linear-gradient(var(--bg),var(--bg))}
+.grip{position:absolute;left:-22px;top:12px;width:18px;height:18px;color:var(--fg-3);opacity:0;cursor:grab;display:grid;place-items:center}
+.task[draggable="true"]:hover .grip{opacity:.8}
+.grip svg{width:14px;height:14px;fill:currentColor;stroke:none}
+.task.dragging{opacity:.35}
+.task.drop-before{box-shadow:inset 0 2px 0 var(--accent)}
+.task.drop-after{box-shadow:inset 0 -2px 0 var(--accent)}
+.chev{position:absolute;left:-40px;top:12px;width:18px;height:18px;color:var(--fg-3);display:grid;place-items:center;border-radius:4px}
+.chev:hover{background:var(--hover)}
+.chev svg{width:14px;height:14px;transition:transform .15s}
+.chev.open svg{transform:rotate(90deg)}
+.sublist{padding-left:30px}
+.check{--pc:var(--p4);width:20px;height:20px;margin-top:1px;border-radius:50%;border:1.6px solid var(--pc);background:color-mix(in srgb,var(--pc) 9%,transparent);display:grid;place-items:center;flex:none;color:var(--pc);transition:background .18s,transform .18s}
+.check.p1{--pc:var(--p1);border-width:2px}.check.p2{--pc:var(--p2);border-width:2px}.check.p3{--pc:var(--p3);border-width:2px}
+.check.p4{background:transparent}
+.check svg{width:12px;height:12px;stroke-width:3;opacity:0;transition:opacity .15s}
+.check:hover svg{opacity:.7}
+.task.completing .check,.task.is-done .check{background:var(--pc);color:#fff;transform:scale(1.06)}
+.task.completing .check svg,.task.is-done .check svg{opacity:1}
+.task-body{flex:1;min-width:0;cursor:pointer}
+.task-title{display:inline;color:var(--fg);background:linear-gradient(currentColor,currentColor) no-repeat 0 58%/0 1.5px;transition:background-size .32s ease,color .3s;overflow-wrap:anywhere}
+.task.completing .task-title{background-size:100% 1.5px;color:var(--fg-3)}
+.task.is-done .task-title{color:var(--fg-3);text-decoration:line-through}
+.task-desc{color:var(--fg-3);font-size:13px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.task-meta{display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:4px;font-size:12px;color:var(--fg-3);align-items:center}
+.task-meta:empty{display:none}
+.task-meta span{display:inline-flex;align-items:center;gap:4px}
+.task-meta svg.i{width:13px;height:13px}
+.due.today{color:var(--today)}.due.tomorrow{color:var(--tomorrow)}.due.overdue{color:var(--overdue)}.due.week{color:var(--week)}
+.lbl{color:var(--fg-2)}
+.proj-badge{font-size:12px;color:var(--fg-3);display:flex;align-items:center;gap:2px;white-space:nowrap;margin-top:2px;flex:none;max-width:40%;overflow:hidden;text-overflow:ellipsis}
+.task.collapsing{max-height:0!important;padding-top:0;padding-bottom:0;opacity:0;overflow:hidden}
+
+.add-row{display:flex;align-items:center;gap:10px;padding:10px 4px;color:var(--fg-3);width:100%;text-align:left}
+.add-row .plus{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;color:var(--accent)}
+.add-row:hover{color:var(--accent-text)}
+.add-row:hover .plus{background:var(--accent);color:#fff}
+.empty{text-align:center;padding:48px 16px 24px;color:var(--fg-3)}
+.empty-art{width:120px;height:90px;margin:0 auto 14px;display:block}
+.empty h2{font-size:16px;color:var(--fg);margin:0 0 4px;font-weight:600}
+
+.filter-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px;margin-bottom:28px}
+.filter-card{display:flex;align-items:center;gap:10px;padding:12px;border:1px solid var(--line);border-radius:10px;text-align:left;background:var(--surface)}
+.filter-card:hover{border-color:var(--line-2);background:var(--hover)}
+.filter-card .count{margin-left:auto;color:var(--fg-3);font-size:12px;font-variant-numeric:tabular-nums}
+.chip-list{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:28px}
+.chip-btn{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;border:1px solid var(--line-2);color:var(--fg-2);background:var(--surface)}
+.chip-btn:hover{border-color:var(--accent);color:var(--accent-text)}
+.chip-btn .count{color:var(--fg-3);font-size:12px}
+h3.sec{font-size:14px;margin:0 0 10px;font-weight:700}
+
+/* Daily */
+.check.daily-check{--pc:var(--today);border-radius:6px;border-width:2px}
+.daily-bar{margin:10px 0 0}
+.week-dots{display:inline-flex;gap:3px}
+.week-dots i{width:7px;height:7px;border-radius:50%;background:var(--line-2)}
+.week-dots i.on{background:var(--today)}
+.streak{color:var(--week)}
+.ic-daily{color:var(--today)}
+
+/* Date picker */
+.picker{position:fixed;z-index:70;width:292px;max-width:calc(100vw - 16px);background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);padding:8px;animation:pop .14s ease}
+.pk-quick{display:flex;flex-direction:column;border-bottom:1px solid var(--line);padding-bottom:6px;margin-bottom:6px}
+.pk-quick button{display:flex;align-items:center;gap:10px;padding:7px 8px;border-radius:7px;text-align:left;font-size:13px}
+.pk-quick button:hover{background:var(--hover)}
+.pk-quick .when{margin-left:auto;color:var(--fg-3);font-size:12px}
+.pk-quick .q-today svg{color:var(--today)}.pk-quick .q-tom svg{color:var(--tomorrow)}.pk-quick .q-next svg{color:var(--p3)}.pk-quick .q-none svg{color:var(--fg-3)}
+.pk-head{display:flex;align-items:center;justify-content:space-between;padding:2px 2px 4px}
+.pk-head b{font-size:13px;font-weight:700}
+.pk-head .icon-btn svg{width:16px;height:16px}
+.pk-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center}
+.pk-grid .wd{font-size:11px;color:var(--fg-3);padding:4px 0;font-weight:600}
+.pk-grid button{height:34px;border-radius:50%;font-size:13px;font-variant-numeric:tabular-nums}
+.pk-grid button:hover{background:var(--hover)}
+.pk-grid button.out{color:var(--fg-3)}
+.pk-grid button.past{color:var(--fg-3);opacity:.55}
+.pk-grid button.today{color:var(--accent-text);font-weight:700;box-shadow:inset 0 0 0 1.5px var(--accent)}
+.pk-grid button.sel{background:var(--accent);color:var(--accent-fg);font-weight:700;opacity:1}
+.tpicker{width:268px}
+.tp-head{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--fg-3);padding:4px 4px 8px}
+.tp-row{display:flex;gap:6px}
+.tp-row input{flex:1;min-width:0;border:1px solid var(--line);border-radius:8px;padding:7px 9px;background:var(--bg);font-size:15px;outline:none}
+.tp-row input:focus{border-color:var(--line-2);box-shadow:0 0 0 3px var(--accent-soft)}
+.tp-presets{display:flex;flex-wrap:wrap;gap:6px;padding:10px 0 6px}
+.tp-presets button{padding:4px 9px;border-radius:999px;border:1px solid var(--line-2);font-size:12px;font-variant-numeric:tabular-nums}
+.tp-presets button:hover{border-color:var(--accent);color:var(--accent-text)}
+.tp-presets button.on{background:var(--accent);border-color:var(--accent);color:var(--accent-fg)}
+.tp-sub{font-size:11px;color:var(--fg-3);padding:4px 2px 0}
+.tp-clear{width:100%;text-align:left;padding:8px 4px 4px;border-top:1px solid var(--line);margin-top:6px;color:var(--fg-2);font-size:13px;display:flex;gap:8px;align-items:center}
+.tp-clear:hover{color:var(--fg)}
+.date-btn{display:flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:8px;padding:7px 9px;background:var(--bg);text-align:left;width:100%;min-width:0;white-space:nowrap;overflow:hidden}
+.date-btn:hover{border-color:var(--line-2)}
+.date-btn.none{color:var(--fg-3)}
+button.due{font-size:12px;display:inline-flex;align-items:center;gap:4px;border-radius:5px;padding:1px 4px;margin:-1px -4px}
+button.due:hover{background:var(--hover)}
+.add-due{opacity:0;color:var(--fg-3);margin-top:-4px}
+.task:hover .add-due,.add-due:focus-visible{opacity:1}
+@media (hover:none){.add-due{opacity:.7}}
+button.chip{cursor:pointer}
+button.chip:hover{background:var(--hover)}
+
+/* Daily log + stats */
+:root{--heat1:#d3eedb;--heat2:#98d6aa;--heat3:#4fb36b;--heat4:#1d8640}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--heat1:#1f3a28;--heat2:#286a3c;--heat3:#3ea35c;--heat4:#72d98e}}
+:root[data-theme="dark"]{--heat1:#1f3a28;--heat2:#286a3c;--heat3:#3ea35c;--heat4:#72d98e}
+.tabs{display:inline-flex;gap:2px;background:var(--hover);border-radius:9px;padding:3px;margin:-6px 0 20px}
+.tabs button{padding:6px 14px;border-radius:7px;font-size:13px;font-weight:500;color:var(--fg-2)}
+.tabs button.on{background:var(--surface);color:var(--fg);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:26px}
+.kpi{border:1px solid var(--line);border-radius:12px;padding:14px;background:var(--surface);min-width:0}
+.kpi .k{font-size:12px;color:var(--fg-3)}
+.kpi .v{font-size:26px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums;margin-top:2px}
+.kpi .s{font-size:12px;color:var(--fg-3);margin-top:2px}
+.chart-card{border:1px solid var(--line);border-radius:12px;padding:16px;background:var(--surface);margin-bottom:18px;min-width:0}
+.chart-card h3{font-size:14px;margin:0 0 2px;font-weight:700}
+.chart-card .cs{font-size:12px;color:var(--fg-3);margin-bottom:12px}
+.chart-wrap{overflow-x:auto}
+.bars svg{display:block;width:100%;min-width:480px;height:auto}
+.bars text{fill:var(--fg-3);font-size:10px;font-family:var(--font)}
+.bars .grid{stroke:var(--line);stroke-width:1}
+.bars .bar{fill:var(--today)}
+.bars .bar.today{fill:var(--heat3)}
+.bars .hit{fill:transparent}
+.bars .hit:hover+.bar,.bars g:hover .bar{opacity:.75}
+.heat{display:flex;gap:6px}
+.heat-days{display:grid;grid-template-rows:repeat(7,14px);gap:3px;font-size:10px;color:var(--fg-3);line-height:14px}
+.heat-grid{display:grid;grid-auto-flow:column;grid-template-rows:repeat(7,14px);grid-auto-columns:14px;gap:3px}
+.heat-grid i{border-radius:3px;background:var(--line)}
+.heat-grid i.none{background:transparent;box-shadow:inset 0 0 0 1px var(--line)}
+.heat-grid i.l1{background:var(--heat1)}.heat-grid i.l2{background:var(--heat2)}.heat-grid i.l3{background:var(--heat3)}.heat-grid i.l4{background:var(--heat4)}
+.heat-grid i.t{box-shadow:0 0 0 1.5px var(--fg)}
+.heat-legend{display:flex;align-items:center;gap:3px;font-size:11px;color:var(--fg-3);margin-top:10px}
+.heat-legend i{width:12px;height:12px;border-radius:3px;display:inline-block}
+.wd-bars{display:flex;flex-direction:column;gap:6px}
+.wd-row{display:grid;grid-template-columns:28px minmax(0,1fr) 44px;gap:8px;align-items:center;font-size:12px}
+.wd-row .lbl2{color:var(--fg-2)}
+.wd-row .track{height:10px;border-radius:0 4px 4px 0;background:transparent;position:relative}
+.wd-row .fill{height:100%;border-radius:0 4px 4px 0;background:var(--today)}
+.wd-row .val{text-align:right;font-variant-numeric:tabular-nums;color:var(--fg)}
+.two-col{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px}
+.two-col .chart-card{margin-bottom:0}
+.stat-table{width:100%;border-collapse:collapse;font-size:13px;min-width:520px}
+.stat-table th{text-align:left;font-size:11px;font-weight:600;color:var(--fg-3);text-transform:uppercase;letter-spacing:.05em;padding:6px 8px;border-bottom:1px solid var(--line)}
+.stat-table td{padding:9px 8px;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums}
+.stat-table td.num,.stat-table th.num{text-align:right}
+.tip{position:fixed;z-index:80;pointer-events:none;background:var(--surface);border:1px solid var(--line-2);box-shadow:var(--shadow);border-radius:8px;padding:6px 9px;font-size:12px;color:var(--fg);white-space:pre-line;max-width:240px}
+.log-day{border-bottom:1px solid var(--line);padding:14px 0;display:grid;grid-template-columns:120px minmax(0,1fr);gap:14px}
+.log-date b{display:block;font-size:14px}
+.log-date span{font-size:12px;color:var(--fg-3)}
+.log-date .mini{height:4px;border-radius:4px;background:var(--line);margin-top:8px;overflow:hidden;max-width:90px}
+.log-date .mini i{display:block;height:100%;background:var(--today)}
+.log-chips{display:flex;flex-wrap:wrap;gap:6px}
+.log-chip{display:inline-flex;align-items:center;gap:5px;font-size:12px;padding:4px 9px;border-radius:999px;border:1px dashed var(--line-2);color:var(--fg-3)}
+.log-chip.ok{border-style:solid;border-color:transparent;background:color-mix(in srgb,var(--today) 14%,transparent);color:var(--fg)}
+.log-chip.ok svg{color:var(--today)}
+.log-chip svg.i{width:12px;height:12px;stroke-width:2.6}
+.log-chip:hover{border-color:var(--today)}
+.log-note{margin-top:10px;font-size:13px;color:var(--fg-2);white-space:pre-wrap;overflow-wrap:anywhere}
+.log-note-btn{margin-top:8px;font-size:12px;color:var(--fg-3);display:inline-flex;gap:5px;align-items:center}
+.log-note-btn:hover{color:var(--accent-text)}
+.log-note-btn svg.i{width:13px;height:13px}
+.note-edit{margin-top:10px;display:flex;flex-direction:column;gap:6px}
+.note-edit textarea{width:100%;min-height:70px;border:1px solid var(--line);border-radius:8px;padding:8px 10px;background:var(--bg);resize:vertical;outline:none}
+.note-edit div{display:flex;gap:6px;justify-content:flex-end}
+@media (max-width:560px){.log-day{grid-template-columns:minmax(0,1fr);gap:8px}}
+
+/* Groups */
+.gdot{width:10px;height:10px;border-radius:3px;flex:none;margin:0 4px}
+.view-head h1 .gdot{width:14px;height:14px;border-radius:4px}
+.members{display:flex;flex-wrap:wrap;gap:6px;margin:-6px 0 18px}
+.member{display:inline-flex;align-items:center;gap:6px;padding:3px 10px 3px 3px;border-radius:999px;background:var(--hover);font-size:12px;color:var(--fg-2)}
+.av{width:18px;height:18px;border-radius:50%;object-fit:cover;flex:none;display:inline-block;background:var(--line-2)}
+.member .av{width:22px;height:22px}
+.who{color:var(--fg-2)}
+.g-badge{font-size:12px;color:var(--fg-3);display:flex;align-items:center;gap:2px;white-space:nowrap;margin-top:2px;flex:none;max-width:40%;overflow:hidden;text-overflow:ellipsis}
+.group-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px;margin-bottom:24px}
+.group-card{display:flex;flex-direction:column;gap:8px;padding:14px;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+.group-card .gc-head{display:flex;align-items:center;gap:6px;font-weight:700}
+.group-card .gc-sub{font-size:12px;color:var(--fg-3)}
+.group-card .gc-actions{display:flex;gap:6px;margin-top:auto}
+.steps{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px;color:var(--fg-2)}
+.steps b{color:var(--fg)}
+.menu{width:250px}
+.menu .mi{display:flex;align-items:center;gap:10px;width:100%;padding:8px;border-radius:7px;text-align:left;font-size:13px}
+.menu .mi:hover{background:var(--hover)}
+.menu .mi .count{margin-left:auto;color:var(--fg-3);font-size:12px}
+.menu p{margin:4px 6px 8px;font-size:13px;color:var(--fg-2)}
+.share-link{display:flex;gap:6px}
+.share-link input{flex:1;min-width:0;border:1px solid var(--line);border-radius:8px;padding:8px 10px;background:var(--bg);color:var(--fg-2);font-size:13px;outline:none}
+.share-native{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:11px;border-radius:10px;background:var(--accent);color:var(--accent-fg);font-weight:600}
+.share-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px}
+.share-btn{display:flex;align-items:center;gap:8px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;color:var(--fg);text-decoration:none;font-weight:500;font-size:13px;background:var(--surface)}
+.share-btn:hover{border-color:var(--line-2);background:var(--hover)}
+.share-btn .sd{width:10px;height:10px;border-radius:50%;flex:none}
+.side-note{font-size:12px;color:var(--fg-3);padding:2px 8px 6px}
+
+/* Reminders */
+.remind{color:var(--fg-2)}
+.rem-hint{font-size:12px;color:var(--fg-3);margin:-4px 0 0;display:flex;gap:6px;align-items:center}
+.rem-hint svg.i{width:13px;height:13px}
+.reminders{position:fixed;top:calc(16px + env(safe-area-inset-top,0px));right:max(16px,env(safe-area-inset-right,0px));z-index:65;display:flex;flex-direction:column;gap:8px;width:min(340px,calc(100vw - 32px))}
+.rem{background:var(--surface);border:1px solid var(--line-2);box-shadow:var(--shadow);border-radius:12px;padding:12px 14px;display:grid;grid-template-columns:auto minmax(0,1fr);gap:2px 12px;animation:pop .18s ease}
+.rem .bell{width:34px;height:34px;border-radius:50%;background:var(--accent-soft);color:var(--accent-text);display:grid;place-items:center;grid-row:span 2;animation:ring .9s ease 2}
+.rem .rk{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--accent-text)}
+.rem .rt{font-weight:600;overflow-wrap:anywhere}
+.rem .rs{grid-column:2;font-size:12px;color:var(--fg-3)}
+.rem .ra{grid-column:2;display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.rem .ra .btn{padding:5px 10px;font-size:12px}
+@keyframes ring{0%,100%{transform:rotate(0)}20%{transform:rotate(14deg)}40%{transform:rotate(-12deg)}60%{transform:rotate(8deg)}80%{transform:rotate(-4deg)}}
+
+/* Modals */
+.backdrop{position:fixed;inset:0;background:var(--backdrop);display:flex;align-items:flex-start;justify-content:center;padding:12vh 16px 16px;z-index:50;animation:fade .14s ease}
+.modal{background:var(--surface);border-radius:12px;box-shadow:var(--shadow);width:100%;max-width:560px;border:1px solid var(--line);animation:pop .16s ease;max-height:80vh;display:flex;flex-direction:column}
+.modal.big{max-width:640px}
+@keyframes fade{from{opacity:0}}
+@keyframes pop{from{opacity:0;transform:translateY(-6px) scale(.98)}}
+.qa{padding:14px 16px 0}
+.qa input.title{width:100%;border:0;outline:none;background:none;font-size:16px;font-weight:600;padding:2px 0}
+.qa input.desc{width:100%;border:0;outline:none;background:none;font-size:13px;color:var(--fg-2);padding:4px 0 10px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;min-height:28px;padding-bottom:12px}
+.chip{display:inline-flex;align-items:center;gap:5px;font-size:12px;padding:3px 8px;border-radius:6px;border:1px solid var(--line-2);color:var(--fg-2)}
+.chip svg.i{width:13px;height:13px}
+.chip.due.today,.chip.due.tomorrow,.chip.due.overdue,.chip.due.week{border-color:currentColor}
+.chip.pri1{color:var(--p1);border-color:var(--p1)}.chip.pri2{color:var(--p2);border-color:var(--p2)}.chip.pri3{color:var(--p3);border-color:var(--p3)}
+.chip.muted{border-style:dashed;color:var(--fg-3)}
+.modal-foot{display:flex;align-items:center;gap:8px;padding:10px 16px;border-top:1px solid var(--line);flex-wrap:wrap}
+.modal-foot .hint{font-size:12px;color:var(--fg-3);margin-right:auto}
+.btn{padding:7px 14px;border-radius:7px;font-weight:600;font-size:13px;background:var(--hover);color:var(--fg)}
+.btn:hover{background:var(--line)}
+.btn.primary{background:var(--accent);color:var(--accent-fg)}
+.btn.primary:hover{filter:brightness(1.06)}
+.btn.primary:disabled{opacity:.45;cursor:not-allowed}
+.btn.danger{background:none;color:var(--overdue);margin-right:auto;padding-left:6px}
+.btn.danger:hover{background:var(--accent-soft)}
+.detail{padding:16px;overflow-y:auto;display:flex;flex-direction:column;gap:14px}
+.detail .crumb{font-size:12px;color:var(--fg-3);display:flex;gap:6px;align-items:center}
+.detail .crumb button{color:var(--fg-2);text-decoration:underline;text-underline-offset:2px}
+.detail input.title{font-size:18px;font-weight:700;border:0;outline:none;background:none;width:100%;padding:0}
+.detail textarea{width:100%;min-height:64px;border:1px solid var(--line);border-radius:8px;padding:8px 10px;background:var(--bg);resize:vertical;outline:none}
+.detail textarea:focus,.field input:focus,.field select:focus{border-color:var(--line-2);box-shadow:0 0 0 3px var(--accent-soft)}
+.fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.field{display:flex;flex-direction:column;gap:4px;min-width:0}
+.field label,.field .lab{font-size:11px;font-weight:600;color:var(--fg-3);text-transform:uppercase;letter-spacing:.06em}
+.field input,.field select{border:1px solid var(--line);border-radius:8px;padding:7px 9px;background:var(--bg);outline:none;width:100%;min-width:0}
+.prio{display:flex;gap:4px}
+.prio button{flex:1;display:flex;align-items:center;justify-content:center;gap:4px;border:1px solid var(--line);border-radius:8px;padding:6px 0;font-size:12px;font-weight:600}
+.prio button svg{width:14px;height:14px}
+.prio button.on{border-color:currentColor;background:var(--hover)}
+.prio .p1{color:var(--p1)}.prio .p2{color:var(--p2)}.prio .p3{color:var(--p3)}.prio .p4{color:var(--p4)}
+.subs h4{margin:0 0 6px;font-size:13px;display:flex;gap:8px;align-items:center}
+.subs h4 .prog{font-weight:500;color:var(--fg-3);font-size:12px}
+.bar{height:4px;background:var(--line);border-radius:4px;overflow:hidden;margin-bottom:6px}
+.bar i{display:block;height:100%;background:var(--today);border-radius:4px;transition:width .3s}
+.sub-row{display:flex;align-items:center;gap:10px;padding:6px 2px;border-bottom:1px solid var(--line)}
+.sub-row .check{width:18px;height:18px}
+.sub-row.is-done .check{background:var(--pc);color:#fff}.sub-row.is-done .check svg{opacity:1}
+.sub-row.is-done .st{color:var(--fg-3);text-decoration:line-through}
+.sub-row .st{flex:1;min-width:0;cursor:pointer;overflow-wrap:anywhere}
+.sub-add{display:flex;gap:8px;margin-top:6px}
+.sub-add input{flex:1;min-width:0;border:1px solid var(--line);border-radius:8px;padding:7px 9px;background:var(--bg);outline:none}
+.swatches{display:flex;flex-wrap:wrap;gap:8px}
+.swatches button{width:28px;height:28px;border-radius:50%;border:2px solid transparent;box-shadow:inset 0 0 0 2px var(--surface)}
+.swatches button.on{border-color:var(--fg)}
+
+/* Toast */
+.toasts{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom,0px));z-index:60;display:flex;flex-direction:column;gap:8px;align-items:center;width:max-content;max-width:calc(100% - 32px)}
+.toast{display:flex;align-items:center;gap:14px;background:#2b2a29;color:#f3f1ee;border-radius:10px;padding:10px 10px 10px 16px;box-shadow:0 8px 24px rgba(0,0,0,.25);animation:up .2s ease;font-size:13px}
+:root[data-theme="dark"] .toast{background:#3a3937}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .toast{background:#3a3937}}
+.toast .undo{color:#ff9d93;font-weight:700;padding:4px 8px;border-radius:6px}
+.toast .undo:hover{background:rgba(255,255,255,.08)}
+.toast .x{color:#bdb8b3;width:24px;height:24px;display:grid;place-items:center;border-radius:6px}
+.toast .x svg{width:14px;height:14px}
+@keyframes up{from{opacity:0;transform:translateY(8px)}}
+.overlay{display:none}
+
+@media (max-width:760px){
+  .app{grid-template-columns:minmax(0,1fr)}
+  .side{position:fixed;inset:0 auto 0 0;width:min(300px,86vw);z-index:40;transform:translateX(-102%);transition:transform .22s ease;padding-top:calc(14px + env(safe-area-inset-top,0px));padding-bottom:calc(10px + env(safe-area-inset-bottom,0px));box-shadow:var(--shadow)}
+  body.side-open .side{transform:none}
+  body.side-open .overlay{display:block;position:fixed;inset:0;background:var(--backdrop);z-index:30}
+  .menu-btn{display:grid}
+  .add-btn span{display:none}
+  .add-btn{padding:0 9px}
+  .grip,.chev{display:none}
+  .kbd-hint{display:none}
+  .backdrop{padding-top:8vh}
+  .proj-badge{display:none}
+}
+@media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<div class="app">
+  <aside class="side" id="side" aria-label="Navigace">
+    <div class="brand"><span class="brand-mark"><svg class="i" viewBox="0 0 24 24"><path d="m6 12.5 4 4 8-9"/></svg></span>Úkolníček</div>
+    <nav class="nav" id="nav-main"></nav>
+    <div class="side-scroll">
+      <div class="sec-head">Moje projekty <button class="icon-btn" data-act="new-project" aria-label="Nový projekt" title="Nový projekt"><svg class="i" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button></div>
+      <nav class="nav" id="nav-projects"></nav>
+      <div class="sec-head" style="margin-top:12px">Skupiny <button class="icon-btn" data-act="new-group" aria-label="Nová skupina" title="Nová skupina"><svg class="i" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button></div>
+      <nav class="nav" id="nav-groups"></nav>
+    </div>
+    <div class="kbd-hint"><kbd>Q</kbd> přidat · <kbd>/</kbd> hledat · <kbd>Esc</kbd> zavřít</div>
+    <div class="side-foot">
+      <button class="nav-item" data-act="theme" id="theme-btn"></button>
+    </div>
+  </aside>
+  <div class="overlay" data-act="close-side"></div>
+  <main class="main">
+    <div class="topbar">
+      <button class="icon-btn menu-btn" data-act="open-side" aria-label="Otevřít menu"><svg class="i" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+      <label class="search"><svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="m20 20-4.5-4.5"/></svg><input id="search" type="search" placeholder="Hledat úkoly" autocomplete="off"></label>
+      <button class="add-btn" data-act="quick-add"><svg class="i" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg><span>Přidat úkol</span></button>
+    </div>
+    <div class="content" id="content"><div class="wrap" id="view"></div></div>
+  </main>
+</div>
+<div id="modal-root"></div>
+<div class="toasts" id="toasts" aria-live="polite"></div>
+<div class="reminders" id="reminders" aria-live="assertive"></div>
+<div class="tip" id="tip" hidden></div>
+
+<script>
+(() => {
+/* ---------- helpers ---------- */
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const norm = s => String(s).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-3);
+const pad = n => String(n).padStart(2, '0');
+const pl = (n, a, b, c) => `${n} ${n === 1 ? a : n > 1 && n < 5 ? b : c}`;
+const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
+const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+const iso = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+const fromIso = s => { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d); };
+const addDays = (s, n) => { const d = fromIso(s); d.setDate(d.getDate() + n); return iso(d); };
+const today = () => iso(new Date());
+const diff = (a, b) => Math.round((fromIso(a) - fromIso(b)) / 864e5);
+const dow = s => fromIso(s).getDay();
+const DOW = ['neděle','pondělí','úterý','středa','čtvrtek','pátek','sobota'];
+const MON = ['ledna','února','března','dubna','května','června','července','srpna','září','října','listopadu','prosince'];
+const MON_S = ['led','úno','bře','dub','kvě','čvn','čvc','srp','zář','říj','lis','pro'];
+const EVERY = ['každou neděli','každé pondělí','každé úterý','každou středu','každý čtvrtek','každý pátek','každou sobotu'];
+
+function dueLabel(due, time) {
+  if (!due) return '';
+  const d = diff(due, today()); let s;
+  if (d === 0) s = 'Dnes'; else if (d === 1) s = 'Zítra'; else if (d === -1) s = 'Včera';
+  else if (d > 1 && d < 7) s = cap(DOW[dow(due)]);
+  else { const dt = fromIso(due); s = `${dt.getDate()}. ${MON_S[dt.getMonth()]}` + (dt.getFullYear() !== new Date().getFullYear() ? ` ${dt.getFullYear()}` : ''); }
+  return time ? `${s} ${time}` : s;
+}
+function dueClass(due) {
+  if (!due) return ''; const d = diff(due, today());
+  return d < 0 ? 'overdue' : d === 0 ? 'today' : d === 1 ? 'tomorrow' : d < 7 ? 'week' : '';
+}
+function longDate(s) { const dt = fromIso(s); return `${dt.getDate()}. ${MON[dt.getMonth()]}`; }
+
+/* ---------- icons ---------- */
+const I = {
+  inbox: '<path d="M4 13h4l1.5 2.5h5L16 13h4"/><path d="M5.5 5h13L20 13v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-5z"/>',
+  up: '<rect x="4" y="5" width="16" height="15" rx="2.5"/><path d="M4 9.5h16M8.5 3v3.5M15.5 3v3.5M8.5 13.5h1M12 13.5h1M15.5 13.5h1M8.5 16.8h1M12 16.8h1"/>',
+  cal: '<rect x="4" y="5" width="16" height="15" rx="2.5"/><path d="M4 9.5h16M8.5 3v3.5M15.5 3v3.5"/>',
+  filter: '<rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><circle cx="16.75" cy="16.75" r="3.25"/>',
+  done: '<circle cx="12" cy="12" r="8"/><path d="m8.5 12.2 2.4 2.4 4.8-5"/>',
+  plus: '<path d="M12 5v14M5 12h14"/>',
+  sun: '<circle cx="12" cy="12" r="4"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6 7 7M17 17l1.4 1.4M5.6 18.4 7 17M17 7l1.4-1.4"/>',
+  moon: '<path d="M19 14.5A7.5 7.5 0 0 1 9.5 5a7.5 7.5 0 1 0 9.5 9.5z"/>',
+  repeat: '<path d="M17 3l3 3-3 3"/><path d="M4 11V9a3 3 0 0 1 3-3h13"/><path d="M7 21l-3-3 3-3"/><path d="M20 13v2a3 3 0 0 1-3 3H4"/>',
+  tag: '<path d="M3.5 12.5v-8a1 1 0 0 1 1-1h8l8 8a1.4 1.4 0 0 1 0 2l-7 7a1.4 1.4 0 0 1-2 0z"/><circle cx="8" cy="8" r="1.4"/>',
+  sub: '<path d="M6 4v10a3 3 0 0 0 3 3h9"/><path d="m15 14 3 3-3 3"/>',
+  trash: '<path d="M4 7h16M9 7V4.5h6V7M6.5 7l1 13h9l1-13"/>',
+  check: '<path d="m6 12.5 4 4 8-9"/>',
+  chev: '<path d="m9 6 6 6-6 6"/>',
+  flag: '<path d="M5 21V4M5 4h11l-2 4 2 4H5"/>',
+  edit: '<path d="M4 20h4L19 9l-4-4L4 16z"/>',
+  x: '<path d="M6 6l12 12M18 6 6 18"/>',
+  hash: '<path d="M9 4 7 20M17 4l-2 16M4 9h16M3.5 15h16"/>',
+  clock: '<circle cx="12" cy="12" r="8"/><path d="M12 8v4l2.5 2"/>',
+  daily: '<path d="M12 3v2.5M4.6 8.6l1.6 1.6M19.4 8.6l-1.6 1.6M3 16h18M7.5 16a4.5 4.5 0 0 1 9 0M6 20h12"/>',
+  users: '<circle cx="9" cy="8.5" r="3.2"/><path d="M3.5 19a5.5 5.5 0 0 1 11 0"/><path d="M15.5 5.6a3 3 0 0 1 0 5.8M17.5 14.2a5.5 5.5 0 0 1 3 4.8"/>',
+  send: '<path d="M4 12 20 4l-6 16-3-7z"/><path d="m11 13 9-9"/>',
+  bell: '<path d="M6 16v-5a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20.5a2 2 0 0 0 4 0"/>',
+  folder: '<path d="M3.5 7a1.5 1.5 0 0 1 1.5-1.5h4l2 2h8a1.5 1.5 0 0 1 1.5 1.5v8.5A1.5 1.5 0 0 1 19 19H5a1.5 1.5 0 0 1-1.5-1.5z"/>',
+};
+const ic = (n, cls = '') => `<svg class="i ${cls}" viewBox="0 0 24 24">${I[n]}</svg>`;
+const todayIcon = () => `<svg class="i" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2.5"/><path d="M4 9.5h16M8.5 3v3.5M15.5 3v3.5"/><text x="12" y="17.8" font-size="7.5" text-anchor="middle" fill="currentColor" stroke="none" font-weight="700" font-family="Onest,system-ui,sans-serif">${new Date().getDate()}</text></svg>`;
+const GRIP = '<svg viewBox="0 0 24 24"><circle cx="9" cy="6" r="1.6"/><circle cx="15" cy="6" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="18" r="1.6"/><circle cx="15" cy="18" r="1.6"/></svg>';
+
+/* ---------- state ---------- */
+const KEY = 'ukolnicek.v1';
+const COLORS = ['#DC4C3E','#EB8909','#E0B400','#299438','#158FAD','#4073FF','#884DFF','#E05194','#8a8580','#6b4f3a'];
+let S, view = { type: 'today' };
+
+function seed() {
+  const t = today(); let o = 0;
+  const T = (title, extra = {}) => ({ id: uid(), title, desc: '', due: null, time: null, priority: 4, labels: [], projectId: 'inbox', parentId: null, done: false, doneAt: null, order: o++, recur: null, collapsed: false, sample: true, ...extra });
+  const projects = [
+    { id: 'p-osobni', name: 'Osobní', color: '#DC4C3E', order: 0, sample: true },
+    { id: 'p-prace', name: 'Práce', color: '#4073FF', order: 1, sample: true },
+    { id: 'p-nakupy', name: 'Nákupy', color: '#299438', order: 2, sample: true },
+  ];
+  const porada = T('Připravit podklady na poradu', { due: t, time: '10:00', priority: 2, projectId: 'p-prace', desc: 'Porada vedení ve 13:00, zasedačka 2' });
+  const tasks = [
+    T('Zavolat mámě', { due: t, time: '18:00', remind: 15, priority: 1, projectId: 'p-osobni', labels: ['telefon'] }),
+    porada,
+    T('Shrnout čísla za říjen', { projectId: 'p-prace', parentId: porada.id, done: true, doneAt: Date.now() - 3600e3 }),
+    T('Připravit 3 slajdy', { projectId: 'p-prace', parentId: porada.id }),
+    T('Poslat agendu týmu', { projectId: 'p-prace', parentId: porada.id }),
+    T('Zaplatit nájem', { due: addDays(t, -1), priority: 1, projectId: 'p-osobni', recur: { t: 'm' } }),
+    T('Cvičení 20 minut', { due: t, time: '07:30', priority: 3, projectId: 'p-osobni', recur: { t: 'd', n: 1 } }),
+    T('Projít e-maily', { due: firstMatch({ t: 'wd' }, t), time: '09:00', projectId: 'p-prace', labels: ['počítač'], recur: { t: 'wd' } }),
+    T('Mléko, chléb a vejce', { due: addDays(t, 1), projectId: 'p-nakupy' }),
+    T('Odevzdat čtvrtletní report', { due: addDays(t, 3), priority: 1, projectId: 'p-prace', labels: ['počítač'] }),
+    T('Přezout pneumatiky na zimní', { due: addDays(t, 5), priority: 2, projectId: 'p-osobni', labels: ['auto'] }),
+    T('Přečíst knihu Hluboká práce', { desc: 'Cal Newport', priority: 4 }),
+    T('Vymyslet dárek k narozeninám pro Petra', { priority: 3 }),
+    T('Objednat se k zubaři', { projectId: 'p-osobni', labels: ['telefon'], done: true, doneAt: Date.now() - 86400e3 }),
+  ];
+  return { tasks, projects, theme: null, view: { type: 'today' } };
+}
+function genHistory(seed, rate, days = 56) {
+  const out = [];
+  for (let i = 1; i <= days; i++) { const r = Math.abs(Math.sin(seed * 97.13 + i * 12.9898) * 43758.5453) % 1; if (r < rate) out.push(addDays(today(), -i)); }
+  return out.sort();
+}
+function seedDaily() {
+  const t = today(), start = addDays(t, -56);
+  return [
+    { id: uid(), title: 'Vypít 2 litry vody', time: null, order: 0, createdAt: start, doneDates: genHistory(1, .85), sample: true },
+    { id: uid(), title: 'Ranní protažení', time: '07:00', order: 1, createdAt: start, doneDates: genHistory(2, .6), sample: true },
+    { id: uid(), title: 'Zkontrolovat kalendář na zítřek', time: '20:00', order: 2, createdAt: start, doneDates: genHistory(3, .7), sample: true },
+    { id: uid(), title: 'Číst 20 minut', time: '21:30', order: 3, createdAt: start, doneDates: genHistory(4, .45), sample: true },
+  ];
+}
+function migrateDaily() {
+  S.daily.forEach((d, i) => {
+    if (d.createdAt) return;
+    if (d.sample) { d.createdAt = addDays(today(), -56); d.doneDates = [...new Set([...genHistory(i + 1, [.85, .6, .7, .45][i % 4]), ...d.doneDates])].sort(); }
+    else d.createdAt = [...d.doneDates].sort()[0] || today();
+  });
+  if (!S.dailyNotes || typeof S.dailyNotes !== 'object') S.dailyNotes = {};
+}
+const dailyList = () => [...S.daily].sort((a, b) => a.order - b.order);
+const dailyDone = d => d.doneDates.includes(today());
+function streak(d) { let n = 0, day = dailyDone(d) ? today() : addDays(today(), -1); while (d.doneDates.includes(day)) { n++; day = addDays(day, -1); } return n; }
+function load() {
+  try { const raw = localStorage.getItem(KEY); if (raw) { const s = JSON.parse(raw); if (s && s.tasks && s.projects) return s; } } catch (e) {}
+  return seed();
+}
+function save() { try { localStorage.setItem(KEY, JSON.stringify({ ...S, view })); } catch (e) {} }
+const snap = () => JSON.stringify(S);
+function restore(json) { const v = view; S = JSON.parse(json); view = v; if (view.type === 'project' && !proj(view.id)) view = { type: 'inbox' }; commit(); }
+
+const task = id => S.tasks.find(t => t.id === id);
+const proj = id => S.projects.find(p => p.id === id);
+const projName = id => id === 'inbox' ? 'Doručené' : (proj(id)?.name || 'Doručené');
+const projColor = id => id === 'inbox' ? 'var(--p3)' : (proj(id)?.color || 'var(--p4)');
+const kids = id => S.tasks.filter(t => t.parentId === id).sort((a, b) => a.order - b.order);
+const descendants = id => kids(id).flatMap(k => [k, ...descendants(k.id)]);
+const isDesc = (maybeChild, ancestor) => { let c = maybeChild && task(maybeChild); while (c) { if (c.id === ancestor) return true; c = c.parentId && task(c.parentId); } return false; };
+const active = () => S.tasks.filter(t => !t.done);
+const maxOrder = () => S.tasks.reduce((m, t) => Math.max(m, t.order), 0) + 1;
+const sortTime = (a, b) => (a.due || '9999').localeCompare(b.due || '9999') || (a.time || '99').localeCompare(b.time || '99') || a.priority - b.priority || a.order - b.order;
+const allLabels = () => { const m = new Map(); active().forEach(t => t.labels.forEach(l => m.set(l, (m.get(l) || 0) + 1))); return [...m].sort((a, b) => a[0].localeCompare(b[0], 'cs')); };
+
+/* ---------- recurrence ---------- */
+function recurText(r) {
+  if (!r) return '';
+  if (r.t === 'd') return r.n > 1 ? `každé ${r.n} ${r.n < 5 ? 'dny' : 'dní'}` : 'každý den';
+  if (r.t === 'wd') return 'každý pracovní den';
+  if (r.t === 'm') return 'každý měsíc';
+  if (r.t === 'w') return r.days && r.days.length ? r.days.map(d => EVERY[d]).join(', ') : 'každý týden';
+  return '';
+}
+function matchesRecur(r, s) {
+  const d = dow(s);
+  if (r.t === 'wd') return d >= 1 && d <= 5;
+  if (r.t === 'w') return (r.days && r.days.length ? r.days : [d]).includes(d);
+  return true;
+}
+function nextDue(r, due) {
+  const t = today(); const base = due && due > t ? due : t;
+  if (r.t === 'd') return addDays(base, r.n || 1);
+  if (r.t === 'm') { const orig = fromIso(due || t).getDate(); const b = fromIso(base); const n = new Date(b.getFullYear(), b.getMonth() + 1, 1); const last = new Date(n.getFullYear(), n.getMonth() + 1, 0).getDate(); n.setDate(Math.min(orig, last)); return iso(n); }
+  if (r.t === 'w' && !(r.days && r.days.length)) return addDays(base, 7);
+  for (let i = 1; i <= 14; i++) { const c = addDays(base, i); if (matchesRecur(r, c)) return c; }
+  return addDays(base, 1);
+}
+function firstMatch(r, from) { for (let i = 0; i < 14; i++) { const c = addDays(from, i); if (matchesRecur(r, c)) return c; } return from; }
+
+/* ---------- natural language parser ---------- */
+const DAY_ALT = 'pondělí|pondeli|úterý|utery|středu|středa|stredu|streda|čtvrtek|ctvrtek|pátek|patek|sobotu|sobota|neděli|neděle|nedeli|nedele';
+const DAYMAP = { pondeli: 1, utery: 2, stredu: 3, streda: 3, ctvrtek: 4, patek: 5, sobotu: 6, sobota: 6, nedeli: 0, nedele: 0 };
+const EV = '(?:každý|každé|každou|každej|kazdy|kazde|kazdou|kazdej)';
+const L = '(?<=^|\\s)', R = '(?=$|[\\s,.!?;])';
+const rx = p => new RegExp(L + '(?:' + p + ')' + R, 'giu');
+const dayDelta = (target, allowToday) => { const d = (target - new Date().getDay() + 7) % 7; return d === 0 && !allowToday ? 7 : d; };
+
+function parseQuick(text) {
+  let s = ' ' + text + ' ';
+  const r = { priority: null, labels: [], project: null, due: null, time: null, recur: null, hasDate: false };
+  const sub = (re, fn) => { s = s.replace(re, (...a) => { const out = fn(...a); return out === false ? a[0] : ' '; }); };
+
+  sub(/(?<=^|\s)#([^\s#@]+)/gu, (m, p) => { r.project = p.replace(/_/g, ' '); });
+  sub(/(?<=^|\s)@([^\s#@]+)/gu, (m, l) => { if (!r.labels.includes(l)) r.labels.push(l); });
+  sub(rx('[pP]([1-4])'), (m, p) => { r.priority = +p; });
+
+  // recurrence
+  sub(rx(EV + '\\s+(?:pracovní|pracovni)\\s+den'), () => { r.recur = { t: 'wd' }; });
+  sub(rx(EV + '\\s+(\\d+)\\s+(?:dny|dní|dni|dnů|dnu)'), (m, n) => { r.recur = { t: 'd', n: Math.max(1, +n) }; });
+  sub(rx(EV + '\\s+den|denně|denne'), () => { r.recur = { t: 'd', n: 1 }; });
+  sub(rx(EV + '\\s+(?:týden|tyden)|týdně|tydne'), () => { r.recur = { t: 'w', days: [] }; });
+  sub(rx(EV + '\\s+(?:měsíc|mesic)|měsíčně|mesicne'), () => { r.recur = { t: 'm' }; });
+  sub(rx(EV + '\\s+(?:' + DAY_ALT + ')(?:\\s*(?:,|a)\\s*(?:' + DAY_ALT + '))*'), m => {
+    const days = [...m.matchAll(new RegExp(DAY_ALT, 'giu'))].map(x => DAYMAP[norm(x[0])]);
+    r.recur = { t: 'w', days: [...new Set(days)].sort() };
+  });
+
+  // dates
+  const setDue = d => { r.due = d; r.hasDate = true; };
+  sub(rx('(?:příští|pristi)\\s+(?:týden|tyden)'), () => setDue(addDays(today(), dayDelta(1, false))));
+  sub(rx('dnes|dneska|dnešek'), () => setDue(today()));
+  sub(rx('pozítří|pozitri'), () => setDue(addDays(today(), 2)));
+  sub(rx('zítra|zitra'), () => setDue(addDays(today(), 1)));
+  sub(rx('za\\s+(\\d+)\\s+(?:týdny|týdnů|tydny|tydnu)'), (m, n) => setDue(addDays(today(), 7 * n)));
+  sub(rx('za\\s+(?:týden|tyden)'), () => setDue(addDays(today(), 7)));
+  sub(rx('za\\s+(\\d+)\\s+(?:dny|dní|dni|den|dnů|dnu)'), (m, n) => setDue(addDays(today(), +n)));
+  sub(rx('(?:(?:v|ve)\\s+)?(?:(příští|pristi)\\s+)?(' + DAY_ALT + ')'), (m, next, d) => setDue(addDays(today(), dayDelta(DAYMAP[norm(d)], false))));
+  sub(rx('(\\d{1,2})\\.\\s?(\\d{1,2})\\.(?:\\s?(\\d{4}))?'), (m, d, mo, y) => {
+    d = +d; mo = +mo; if (d < 1 || d > 31 || mo < 1 || mo > 12) return false;
+    const now = new Date(); let yr = y ? +y : now.getFullYear();
+    let c = iso(new Date(yr, mo - 1, d)); if (!y && c < today()) c = iso(new Date(yr + 1, mo - 1, d));
+    setDue(c);
+  });
+  // time
+  sub(rx('(?:v|ve|o)\\s+(\\d{1,2})(?:[:.](\\d{2}))?(?:\\s?(?:h|hod))?'), (m, h, mi) => { h = +h; mi = mi ? +mi : 0; if (h > 23 || mi > 59) return false; r.time = `${pad(h)}:${pad(mi)}`; });
+  sub(rx('(\\d{1,2}):(\\d{2})'), (m, h, mi) => { if (+h > 23 || +mi > 59) return false; r.time = `${pad(+h)}:${mi}`; });
+
+  if (r.recur) {
+    if (r.recur.t === 'w' && !r.recur.days.length) { r.due = r.due || today(); r.recur.days = [dow(r.due)]; }
+    else if (!r.due) r.due = firstMatch(r.recur, today());
+    else if (!matchesRecur(r.recur, r.due)) r.due = firstMatch(r.recur, r.due);
+  }
+  if (r.time && !r.due) r.due = today();
+  r.title = s.replace(/\s+/g, ' ').trim();
+  return r;
+}
+function findOrCreateProject(name) {
+  if (!name) return null;
+  const n = norm(name).replace(/\s+/g, '');
+  if (['dorucene', 'inbox'].includes(n)) return 'inbox';
+  const p = S.projects.find(p => norm(p.name).replace(/\s+/g, '') === n);
+  if (p) return p.id;
+  const np = { id: 'p-' + uid(), name: cap(name), color: COLORS[S.projects.length % COLORS.length], order: S.projects.length };
+  S.projects.push(np); return np.id;
+}
+
+/* ---------- rendering: sidebar ---------- */
+function navItem(key, label, icon, count, drop) {
+  const on = (view.type === key && !view.id) || (key.startsWith('project:') && view.type === 'project' && view.id === key.slice(8));
+  return `<button class="nav-item ${on ? 'on' : ''}" data-nav="${key}" ${drop ? `data-drop="${drop}"` : ''}>${icon}<span>${esc(label)}</span>${count ? `<span class="count">${count}</span>` : ''}</button>`;
+}
+function renderSide() {
+  const t = today(); const a = active();
+  $('#nav-main').innerHTML =
+    navItem('inbox', 'Doručené', ic('inbox', 'ic-inbox'), a.filter(x => x.projectId === 'inbox').length, 'inbox') +
+    navItem('today', 'Dnes', todayIcon().replace('class="i"', 'class="i ic-today"'), a.filter(x => x.due && x.due <= t).length, 'today') +
+    navItem('daily', 'Denní úkoly', ic('daily', 'ic-daily'), S.daily.filter(d => !dailyDone(d)).length) +
+    navItem('upcoming', 'Nadcházející', ic('up', 'ic-up'), 0) +
+    navItem('filters', 'Štítky a filtry', ic('filter', 'ic-filter'), 0) +
+    navItem('done', 'Hotové', ic('done', 'ic-done'), 0);
+  $('#nav-projects').innerHTML = [...S.projects].sort((x, y) => x.order - y.order).map(p => {
+    const on = view.type === 'project' && view.id === p.id;
+    return `<button class="nav-item proj-item ${on ? 'on' : ''}" data-nav="project:${p.id}" data-drop="project:${p.id}" data-pid="${p.id}" draggable="true"><span class="dot" style="background:${p.color}"></span><span>${esc(p.name)}</span><span class="count">${a.filter(x => x.projectId === p.id).length || ''}</span></button>`;
+  }).join('') || `<div class="kbd-hint" style="display:block">Zatím žádné projekty.</div>`;
+  renderGroupNav();
+  const dark = effectiveDark();
+  $('#theme-btn').innerHTML = `${ic(dark ? 'sun' : 'moon')}<span>${dark ? 'Světlý režim' : 'Tmavý režim'}</span>`;
+}
+
+/* ---------- rendering: tasks ---------- */
+function rowHTML(t, o = {}) {
+  const ks = kids(t.id); const kd = ks.filter(k => k.done).length;
+  const activeKids = ks.filter(k => !k.done).length;
+  const meta = [];
+  if (t.due) meta.push(`<button class="due ${dueClass(t.due)}" data-act="pick-due" title="Změnit termín">${ic('cal')}${esc(dueLabel(t.due, t.time))}${t.recur ? ' ' + ic('repeat') : ''}</button>`);
+  if (t.due && t.remind != null) meta.push(`<span class="remind" title="Připomenutí">${ic('bell')}${esc(remindLabel(t.due, t.time, t.remind))}</span>`);
+  if (ks.length) meta.push(`<span>${ic('sub')}${kd}/${ks.length}</span>`);
+  if (o.showParent && t.parentId && task(t.parentId)) meta.push(`<span>↳ ${esc(task(t.parentId).title)}</span>`);
+  t.labels.forEach(l => meta.push(`<span class="lbl">@${esc(l)}</span>`));
+  const chev = o.tree && activeKids ? `<button class="chev ${t.collapsed ? '' : 'open'}" data-act="collapse" aria-label="Sbalit podúkoly">${ic('chev')}</button>` : '';
+  return `<div class="task ${t.done ? 'is-done' : ''}" data-id="${t.id}" ${o.drag ? 'draggable="true"' : ''}>
+    ${o.drag ? `<span class="grip" aria-hidden="true">${GRIP}</span>` : ''}${chev}
+    <button class="check p${t.priority}" data-act="toggle" aria-label="${t.done ? 'Vrátit úkol' : 'Dokončit úkol'}">${ic('check')}</button>
+    <div class="task-body" data-act="open">
+      <div><span class="task-title">${esc(t.title)}</span></div>
+      ${t.desc ? `<div class="task-desc">${esc(t.desc.split('\n')[0])}</div>` : ''}
+      <div class="task-meta">${meta.join('')}</div>
+    </div>
+    ${!t.due && !t.done ? `<button class="icon-btn add-due" data-act="pick-due" aria-label="Nastavit termín" title="Nastavit termín">${ic('cal')}</button>` : ''}
+    ${o.showProject ? `<span class="proj-badge">${esc(projName(t.projectId))}<span class="dot" style="background:${projColor(t.projectId)};width:8px;height:8px"></span></span>` : ''}
+  </div>`;
+}
+function treeHTML(parentId, projectId) {
+  const items = S.tasks.filter(t => !t.done && (parentId ? t.parentId === parentId : (!t.parentId && t.projectId === projectId))).sort((a, b) => a.order - b.order);
+  return `<div class="list" data-parent="${parentId || ''}" data-project="${projectId}">` + items.map(t => {
+    const hasKids = S.tasks.some(k => k.parentId === t.id && !k.done);
+    return rowHTML(t, { drag: true, tree: true }) + (hasKids && !t.collapsed ? `<div class="sublist">${treeHTML(t.id, projectId)}</div>` : '');
+  }).join('') + `</div>`;
+}
+function flatList(items, o = {}, attrs = '') {
+  return `<div class="list" ${attrs}>${items.map(t => rowHTML(t, { showProject: true, showParent: true, ...o })).join('')}</div>`;
+}
+function dailyRowHTML(d, full) {
+  const done = dailyDone(d), st = streak(d), meta = [];
+  if (d.time) meta.push(`<span>${ic('clock')}${d.time}</span>`);
+  if (d.remind != null) meta.push(`<span class="remind" title="Připomenutí">${ic('bell')}${esc(remindLabel(today(), d.time, d.remind))}</span>`);
+  if (st > 1) meta.push(`<span class="streak">Série ${st} ${st < 5 ? 'dny' : 'dní'}</span>`);
+  if (full) {
+    const dots = [];
+    for (let i = 6; i >= 0; i--) { const x = addDays(today(), -i); dots.push(`<i class="${d.doneDates.includes(x) ? 'on' : ''}" title="${cap(DOW[dow(x)])} ${longDate(x)}"></i>`); }
+    meta.push(`<span class="week-dots" aria-label="Posledních 7 dní">${dots.join('')}</span>`);
+  }
+  return `<div class="task daily-row ${done ? 'is-done' : ''}" data-did="${d.id}" draggable="true"><span class="grip" aria-hidden="true">${GRIP}</span>
+    <button class="check daily-check" data-act="daily-toggle" aria-label="${done ? 'Zrušit splnění' : 'Splnit na dnes'}">${ic('check')}</button>
+    <div class="task-body" data-act="daily-open"><div><span class="task-title">${esc(d.title)}</span></div><div class="task-meta">${meta.join('')}</div></div></div>`;
+}
+function dailyBlock(full) {
+  const list = dailyList(); const n = list.filter(dailyDone).length;
+  if (!full && !list.length) return '';
+  return `<div class="group"><div class="group-head">Denní úkoly<span class="gsub">${n}/${list.length} hotovo · každý den znovu</span>${full ? '' : `<button class="ghost" data-nav="daily">Spravovat</button>`}</div>
+    ${list.length ? `<div class="bar daily-bar"><i style="width:${Math.round(n / list.length * 100)}%"></i></div>` : ''}
+    <div class="list" data-daily="1">${list.map(d => dailyRowHTML(d, full)).join('')}</div>${addRow({ daily: true }, 'Přidat denní úkol')}</div>`;
+}
+/* ---------- daily log & stats ---------- */
+let editingNote = null, logDays = 14;
+const pct = x => Math.round(x * 100) + ' %';
+function dayStat(day) {
+  const ex = S.daily.filter(d => (d.createdAt || '0000-00-00') <= day);
+  if (!ex.length) return null;
+  const done = ex.filter(d => d.doneDates.includes(day));
+  return { total: ex.length, done: done.length, ratio: done.length / ex.length, list: ex };
+}
+function rangeRate(days, d) {
+  let done = 0, tot = 0;
+  for (let i = 0; i < days; i++) {
+    const day = addDays(today(), -i);
+    const items = d ? [d] : S.daily;
+    items.forEach(x => { if ((x.createdAt || '0000') <= day) { tot++; if (x.doneDates.includes(day)) done++; } });
+  }
+  return tot ? done / tot : null;
+}
+function longestStreak(d) {
+  const ds = [...new Set(d.doneDates)].sort(); let best = 0, cur = 0, prev = null;
+  ds.forEach(x => { cur = prev && diff(x, prev) === 1 ? cur + 1 : 1; best = Math.max(best, cur); prev = x; });
+  return best;
+}
+function perfectRun() {
+  let n = 0, day = today(); const s0 = dayStat(day);
+  if (!s0 || s0.ratio < 1) day = addDays(day, -1);
+  for (;;) { const s = dayStat(day); if (!s || s.ratio < 1) break; n++; day = addDays(day, -1); }
+  return n;
+}
+const heatLevel = r => r === null ? 'none' : r === 0 ? '' : r < .34 ? 'l1' : r < .67 ? 'l2' : r < 1 ? 'l3' : 'l4';
+const fmtDay = s => { const dt = fromIso(s); return `${cap(DOW[dt.getDay()])} ${dt.getDate()}. ${dt.getMonth() + 1}.`; };
+
+function dailyStatsHTML() {
+  const t = today(), st = dayStat(t) || { done: 0, total: 0 };
+  const r7 = rangeRate(7), r30 = rangeRate(30), run = perfectRun();
+  let h = `<div class="kpis">
+    <div class="kpi"><div class="k">Dnes</div><div class="v">${st.done}/${st.total}</div><div class="s">splněných denních úkolů</div></div>
+    <div class="kpi"><div class="k">Posledních 7 dní</div><div class="v">${r7 === null ? '–' : pct(r7)}</div><div class="s">úspěšnost</div></div>
+    <div class="kpi"><div class="k">Posledních 30 dní</div><div class="v">${r30 === null ? '–' : pct(r30)}</div><div class="s">úspěšnost</div></div>
+    <div class="kpi"><div class="k">Dokonalé dny v řadě</div><div class="v">${run}</div><div class="s">dny, kdy bylo splněno vše</div></div>
+  </div>`;
+
+  // 30-day bar chart of daily completion
+  const W = 640, H = 170, L = 36, B = 22, T = 8, n = 30, slot = (W - L) / n, bw = Math.max(4, slot - 5), ih = H - B - T;
+  let svg = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Úspěšnost denních úkolů za posledních 30 dní">`;
+  [0, .5, 1].forEach(v => { const y = T + ih * (1 - v); svg += `<line class="grid" x1="${L}" x2="${W}" y1="${y}" y2="${y}"/><text x="${L - 6}" y="${y + 3}" text-anchor="end">${v * 100} %</text>`; });
+  for (let i = 0; i < n; i++) {
+    const day = addDays(t, -(n - 1 - i)), s = dayStat(day), x = L + i * slot + (slot - bw) / 2;
+    if (i % 5 === 4 || i === n - 1) { const dt = fromIso(day); svg += `<text x="${x + bw / 2}" y="${H - 6}" text-anchor="middle">${dt.getDate()}. ${dt.getMonth() + 1}.</text>`; }
+    if (!s) continue;
+    const bh = ih * s.ratio, y = T + ih - bh, r = Math.min(4, bh / 2, bw / 2);
+    const tip = `${fmtDay(day)}${day === t ? ' (dnes, zatím)' : ''}\n${s.done} z ${s.total} splněno · ${pct(s.ratio)}`;
+    svg += `<g data-tip="${esc(tip)}"><rect class="hit" x="${L + i * slot}" y="${T}" width="${slot}" height="${ih}"/>${bh > 0 ? `<path class="bar ${day === t ? 'today' : ''}" d="M${x},${T + ih} V${y + r} Q${x},${y} ${x + r},${y} H${x + bw - r} Q${x + bw},${y} ${x + bw},${y + r} V${T + ih} Z"/>` : ''}</g>`;
+  }
+  svg += `</svg>`;
+  h += `<div class="chart-card"><h3>Úspěšnost po dnech</h3><div class="cs">Podíl splněných denních úkolů za posledních 30 dní</div><div class="chart-wrap bars">${svg}</div></div>`;
+
+  // heatmap 12 weeks
+  const weeks = 12, todayDow = (new Date().getDay() + 6) % 7, start = addDays(t, -(weeks - 1) * 7 - todayDow);
+  let cells = '';
+  for (let i = 0; i < weeks * 7; i++) {
+    const day = addDays(start, i);
+    if (day > t) { cells += `<i class="none" style="visibility:hidden"></i>`; continue; }
+    const s = dayStat(day);
+    cells += `<i class="${heatLevel(s ? s.ratio : null)} ${day === t ? 't' : ''}" data-tip="${esc(fmtDay(day) + '\n' + (s ? `${s.done} z ${s.total} splněno` : 'Žádné denní úkoly'))}"></i>`;
+  }
+  const heat = `<div class="heat"><div class="heat-days"><span>Po</span><span></span><span>St</span><span></span><span>Pá</span><span></span><span>Ne</span></div><div class="heat-grid">${cells}</div></div>
+    <div class="heat-legend">Nic <i style="background:var(--line)"></i><i style="background:var(--heat1)"></i><i style="background:var(--heat2)"></i><i style="background:var(--heat3)"></i><i style="background:var(--heat4)"></i> Vše splněno</div>`;
+
+  // weekday averages
+  const wd = [1, 2, 3, 4, 5, 6, 0].map(w => { let done = 0, tot = 0; for (let i = 0; i < 84; i++) { const day = addDays(t, -i); if (dow(day) !== w) continue; const s = dayStat(day); if (s) { done += s.done; tot += s.total; } } return { w, r: tot ? done / tot : null }; });
+  const best = wd.filter(x => x.r !== null).sort((a, b) => b.r - a.r)[0];
+  const wdHTML = `<div class="wd-bars">${wd.map(x => `<div class="wd-row" data-tip="${esc(cap(DOW[x.w]) + ': ' + (x.r === null ? 'bez dat' : pct(x.r) + ' průměrně'))}"><span class="lbl2">${DOW_S[x.w]}</span><span class="track"><span class="fill" style="display:block;width:${x.r === null ? 0 : Math.max(1, x.r * 100)}%"></span></span><span class="val">${x.r === null ? '–' : pct(x.r)}</span></div>`).join('')}</div>`;
+  h += `<div class="two-col" style="margin-bottom:18px"><div class="chart-card"><h3>Posledních 12 týdnů</h3><div class="cs">Čím tmavší, tím víc splněno</div><div class="chart-wrap">${heat}</div></div>
+    <div class="chart-card"><h3>Dny v týdnu</h3><div class="cs">${best ? `Nejlépe ti to jde v ${DOW_ACC[best.w]}` : 'Zatím málo dat'}</div>${wdHTML}</div></div>`;
+
+  // per task table
+  const rows = dailyList().map(d => {
+    let dots = ''; for (let i = 13; i >= 0; i--) { const x = addDays(t, -i); dots += `<i class="${d.doneDates.includes(x) ? 'on' : ''}" title="${fmtDay(x)}"></i>`; }
+    const a7 = rangeRate(7, d), a30 = rangeRate(30, d);
+    return `<tr><td>${esc(d.title)}</td><td class="num">${a7 === null ? '–' : pct(a7)}</td><td class="num">${a30 === null ? '–' : pct(a30)}</td><td class="num">${streak(d)}</td><td class="num">${longestStreak(d)}</td><td><span class="week-dots">${dots}</span></td></tr>`;
+  }).join('');
+  h += `<div class="chart-card"><h3>Jednotlivé úkoly</h3><div class="cs">Série = kolik dní po sobě jsi úkol splnil</div><div class="chart-wrap"><table class="stat-table"><thead><tr><th>Úkol</th><th class="num">7 dní</th><th class="num">30 dní</th><th class="num">Série</th><th class="num">Nejdelší</th><th>Posledních 14 dní</th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
+  return h;
+}
+const DOW_ACC = ['neděli', 'pondělí', 'úterý', 'středu', 'čtvrtek', 'pátek', 'sobotu'];
+function dailyLogHTML() {
+  const t = today(); let h = '';
+  for (let i = 0; i < logDays; i++) {
+    const day = addDays(t, -i), s = dayStat(day); if (!s) continue;
+    const rel = i === 0 ? 'Dnes' : i === 1 ? 'Včera' : cap(DOW[dow(day)]);
+    const note = S.dailyNotes[day] || '';
+    const chips = dailyList().filter(d => (d.createdAt || '0000') <= day).map(d => {
+      const ok = d.doneDates.includes(day);
+      return `<button class="log-chip ${ok ? 'ok' : ''}" data-act="log-toggle" data-did="${d.id}" data-day="${day}" title="${ok ? 'Splněno · klikem zrušíš' : 'Nesplněno · klikem doplníš'}">${ok ? ic('check') : ''}${esc(d.title)}</button>`;
+    }).join('');
+    let noteHTML;
+    if (editingNote === day) noteHTML = `<div class="note-edit"><textarea id="note-text" placeholder="Jak se dnes dařilo? Co pomohlo, co ne?">${esc(note)}</textarea><div><button class="btn" data-act="note-cancel">Zrušit</button><button class="btn primary" data-act="note-save" data-day="${day}">Uložit</button></div></div>`;
+    else noteHTML = (note ? `<div class="log-note">${esc(note)}</div>` : '') + `<button class="log-note-btn" data-act="note-edit" data-day="${day}">${ic('edit')}${note ? 'Upravit poznámku' : 'Přidat poznámku'}</button>`;
+    h += `<div class="log-day"><div class="log-date"><b>${rel}</b><span>${longDate(day)} · ${s.done}/${s.total}</span><div class="mini"><i style="width:${Math.round(s.ratio * 100)}%"></i></div></div><div><div class="log-chips">${chips}</div>${noteHTML}</div></div>`;
+  }
+  if (!h) return empty('Záznamník je prázdný', 'Jakmile začneš plnit denní úkoly, objeví se tu každý den.');
+  return `<p class="view-sub" style="margin:-8px 0 8px">Klikem na úkol doplníš nebo zrušíš splnění i zpětně. Ke každému dni si můžeš napsat poznámku.</p>` + h +
+    (logDays < 120 ? `<button class="add-row" data-act="log-more"><span class="plus">${ic('plus')}</span>Zobrazit starší dny</button>` : '');
+}
+const addRow = (ctx, label = 'Přidat úkol') => `<button class="add-row" data-act="quick-add" data-ctx='${esc(JSON.stringify(ctx))}'><span class="plus">${ic('plus')}</span>${label}</button>`;
+const emptyArt = `<svg class="empty-art" viewBox="0 0 120 90" aria-hidden="true"><rect x="22" y="14" width="76" height="62" rx="10" fill="var(--hover)" stroke="var(--line-2)"/><circle cx="40" cy="36" r="6" fill="none" stroke="var(--accent)" stroke-width="2"/><path d="m37 36 2.2 2.2 4-4.4" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round"/><rect x="52" y="33" width="32" height="5" rx="2.5" fill="var(--line-2)"/><circle cx="40" cy="56" r="6" fill="none" stroke="var(--line-2)" stroke-width="2"/><rect x="52" y="53" width="24" height="5" rx="2.5" fill="var(--line-2)"/></svg>`;
+const empty = (h, p) => `<div class="empty">${emptyArt}<h2>${h}</h2><div>${p}</div></div>`;
+const head = (title, sub = '', actions = '') => `<div class="view-head"><div><h1>${title}</h1>${sub ? `<div class="view-sub">${sub}</div>` : ''}</div>${actions ? `<div class="view-actions">${actions}</div>` : ''}</div>`;
+
+function renderView() {
+  const el = $('#view'); const t = today(); const a = active(); let h = '';
+  const sampleNote = S.tasks.some(x => x.sample) || S.daily.some(x => x.sample) ? `<div class="note">Vidíš ukázkové úkoly, aby bylo jasné, jak aplikace funguje. <button data-act="clear-sample">Smazat ukázková data</button></div>` : '';
+  switch (view.type) {
+    case 'inbox': {
+      const n = a.filter(x => x.projectId === 'inbox').length;
+      h = head('Doručené', n ? `${n} ${n === 1 ? 'úkol' : n < 5 ? 'úkoly' : 'úkolů'}` : '') + sampleNote + treeHTML(null, 'inbox') + addRow({ projectId: 'inbox' });
+      if (!n) h += empty('Doručené jsou prázdné', 'Sem padá všechno, co přidáš bez projektu. Zkus <kbd>Q</kbd>.');
+      break;
+    }
+    case 'today': {
+      const overdue = a.filter(x => x.due && x.due < t).sort(sortTime);
+      const tod = a.filter(x => x.due === t).sort(sortTime);
+      const dt = new Date();
+      h = head('Dnes', `${cap(DOW[dt.getDay()])} ${longDate(t)} · ${tod.length + overdue.length} ${(tod.length + overdue.length) === 1 ? 'úkol' : (tod.length + overdue.length) < 5 && (tod.length + overdue.length) > 0 ? 'úkoly' : 'úkolů'}`) + sampleNote + dailyBlock(false);
+      if (overdue.length) h += `<div class="group"><div class="group-head overdue">Po termínu<span class="gsub">${overdue.length}</span><button class="ghost" data-act="reschedule-overdue">Přeplánovat na dnes</button></div>${flatList(overdue, { drag: true }, 'data-reorder="1"')}</div>`;
+      h += `<div class="group"><div class="group-head">${longDate(t)}<span class="gsub">Dnes · ${cap(DOW[dt.getDay()])}</span></div>${flatList(tod, { drag: true }, `data-date="${t}" data-zone="1"`)}${addRow({ due: t })}</div>`;
+      const mine = new Set(myGroups().map(g => g.id));
+      const gt = G.tasks.filter(x => !x.done && mine.has(x.groupId) && x.due && x.due <= t && (!x.assignee || x.assignee === G.me)).sort(sortTime);
+      if (gt.length) h += `<div class="group"><div class="group-head">Ze skupin<span class="gsub">${gt.length}</span></div><div class="list">${gt.map(x => gRowHTML(x, true)).join('')}</div></div>`;
+      if (!tod.length && !overdue.length && !gt.length) h += empty('Na dnešek máš hotovo', 'Užij si zbytek dne, nebo si naplánuj něco na zítra.');
+      break;
+    }
+    case 'groups': h = groupsOverviewHTML(); break;
+    case 'group': h = groupViewHTML(); break;
+    case 'daily': {
+      const tab = view.tab || 'today';
+      h = head('Denní úkoly', 'Úkoly, které děláš každý den. O půlnoci se samy obnoví, nemusíš je znovu zadávat.');
+      h += `<div class="tabs" role="tablist">${[['today', 'Dnes'], ['log', 'Záznamník'], ['stats', 'Statistiky']].map(([k, l]) => `<button role="tab" aria-selected="${tab === k}" class="${tab === k ? 'on' : ''}" data-act="daily-tab" data-tab="${k}">${l}</button>`).join('')}</div>`;
+      if (!S.daily.length && tab !== 'today') { h += empty('Zatím žádné denní úkoly', 'Statistiky a záznamník se naplní, jakmile přidáš denní úkoly a začneš je plnit.'); break; }
+      if (tab === 'log') h += dailyLogHTML();
+      else if (tab === 'stats') h += dailyStatsHTML();
+      else { h += dailyBlock(true); if (!S.daily.length) h += empty('Zatím žádné denní úkoly', 'Přidej věci, které děláš každý den, třeba pití vody nebo čtení.'); }
+      break;
+    }
+    case 'upcoming': {
+      const overdue = a.filter(x => x.due && x.due < t).sort(sortTime);
+      h = head('Nadcházející', 'Následujících 7 dní · přetažením úkolu do jiného dne změníš termín');
+      if (overdue.length) h += `<div class="group"><div class="group-head overdue">Po termínu<span class="gsub">${overdue.length}</span><button class="ghost" data-act="reschedule-overdue">Přeplánovat na dnes</button></div>${flatList(overdue, { drag: true })}</div>`;
+      for (let i = 0; i < 7; i++) {
+        const d = addDays(t, i); const items = a.filter(x => x.due === d).sort(sortTime);
+        const rel = i === 0 ? 'Dnes' : i === 1 ? 'Zítra' : cap(DOW[dow(d)]);
+        h += `<div class="group"><div class="group-head">${longDate(d)}<span class="gsub">${rel}${i < 2 ? ' · ' + cap(DOW[dow(d)]) : ''}</span></div>${flatList(items, { drag: true }, `data-date="${d}" data-zone="1"`)}${addRow({ due: d })}</div>`;
+      }
+      const later = a.filter(x => x.due && x.due > addDays(t, 6)).sort(sortTime);
+      if (later.length) h += `<div class="group"><div class="group-head">Později<span class="gsub">${later.length}</span></div>${flatList(later)}</div>`;
+      break;
+    }
+    case 'filters': {
+      const labels = allLabels();
+      const F = filterDefs();
+      h = head('Štítky a filtry');
+      h += `<h3 class="sec">Filtry</h3><div class="filter-grid">${F.map(f => `<button class="filter-card" data-nav="filter:${f.key}">${f.icon}<span>${f.name}</span><span class="count">${a.filter(f.fn).length}</span></button>`).join('')}</div>`;
+      h += `<h3 class="sec">Štítky</h3>` + (labels.length ? `<div class="chip-list">${labels.map(([l, c]) => `<button class="chip-btn" data-nav="label:${esc(l)}">${ic('tag')}@${esc(l)}<span class="count">${c}</span></button>`).join('')}</div>` : `<p class="view-sub">Štítek přidáš při psaní úkolu přes @, třeba „@telefon“.</p>`);
+      break;
+    }
+    case 'filter': {
+      const f = filterDefs().find(f => f.key === view.id) || filterDefs()[0];
+      const items = a.filter(f.fn).sort(sortTime);
+      h = head(`${f.icon} ${f.name}`, `${items.length} úkolů`, `<button class="ghost" data-nav="filters">Všechny filtry</button>`) + flatList(items);
+      if (!items.length) h += empty('Nic tu není', 'Tomuhle filtru teď neodpovídá žádný úkol.');
+      break;
+    }
+    case 'label': {
+      const items = a.filter(x => x.labels.includes(view.id)).sort(sortTime);
+      h = head(`@${esc(view.id)}`, `${items.length} úkolů se štítkem`, `<button class="ghost" data-nav="filters">Všechny štítky</button>`) + flatList(items) + addRow({ labels: [view.id] });
+      break;
+    }
+    case 'done': {
+      const items = S.tasks.filter(x => x.done).sort((x, y) => (y.doneAt || 0) - (x.doneAt || 0));
+      h = head('Hotové', `${items.length} dokončených úkolů · klikem na kolečko úkol vrátíš`);
+      const groups = new Map();
+      items.forEach(x => { const d = iso(new Date(x.doneAt || Date.now())); if (!groups.has(d)) groups.set(d, []); groups.get(d).push(x); });
+      for (const [d, list] of groups) {
+        const rel = d === t ? 'Dnes' : d === addDays(t, -1) ? 'Včera' : cap(DOW[dow(d)]);
+        h += `<div class="group"><div class="group-head">${longDate(d)}<span class="gsub">${rel}</span></div>${flatList(list)}</div>`;
+      }
+      if (!items.length) h += empty('Zatím nic hotového', 'Dokončené úkoly se objeví tady.');
+      break;
+    }
+    case 'project': {
+      const p = proj(view.id); if (!p) { view = { type: 'inbox' }; return renderView(); }
+      const n = a.filter(x => x.projectId === p.id).length;
+      h = head(`<span class="dot" style="background:${p.color};width:14px;height:14px"></span>${esc(p.name)}`, `${n} aktivních úkolů`,
+        `<button class="ghost" data-act="edit-project">${ic('edit')}Upravit</button><button class="ghost danger" data-act="delete-project">${ic('trash')}Smazat</button>`);
+      h += treeHTML(null, p.id) + addRow({ projectId: p.id });
+      if (!n) h += empty('Projekt je prázdný', 'Přidej první úkol, nebo sem nějaký přetáhni.');
+      break;
+    }
+    case 'search': {
+      const q = norm(view.q || '').trim();
+      const items = q ? S.tasks.filter(x => norm([x.title, x.desc, x.labels.map(l => '@' + l).join(' '), projName(x.projectId)].join(' ')).includes(q)).sort((x, y) => x.done - y.done || sortTime(x, y)) : [];
+      h = head(`Hledání: „${esc(view.q || '')}“`, `${items.length} výsledků`) + flatList(items);
+      if (q && !items.length) h += empty('Nic jsme nenašli', 'Zkus jiné slovo. Hledá se v názvu, popisu, štítcích i projektech.');
+      break;
+    }
+  }
+  el.innerHTML = h;
+  resolveNames();
+}
+function filterDefs() {
+  const t = today(), w = addDays(today(), 6);
+  return [
+    { key: 'p1', name: 'Priorita 1', icon: `<svg class="i" viewBox="0 0 24 24" style="color:var(--p1)">${I.flag}</svg>`, fn: x => x.priority === 1 },
+    { key: 'p2', name: 'Priorita 2', icon: `<svg class="i" viewBox="0 0 24 24" style="color:var(--p2)">${I.flag}</svg>`, fn: x => x.priority === 2 },
+    { key: 'overdue', name: 'Po termínu', icon: `<svg class="i" viewBox="0 0 24 24" style="color:var(--overdue)">${I.clock}</svg>`, fn: x => x.due && x.due < t },
+    { key: 'week', name: 'Tento týden', icon: `<svg class="i" viewBox="0 0 24 24" style="color:var(--tomorrow)">${I.cal}</svg>`, fn: x => x.due && x.due >= t && x.due <= w },
+    { key: 'nodate', name: 'Bez termínu', icon: `<svg class="i" viewBox="0 0 24 24" style="color:var(--fg-3)">${I.cal}</svg>`, fn: x => !x.due },
+    { key: 'recur', name: 'Opakované', icon: `<svg class="i" viewBox="0 0 24 24" style="color:var(--today)">${I.repeat}</svg>`, fn: x => !!x.recur },
+  ];
+}
+function render() { renderSide(); renderView(); }
+function commit() { save(); render(); }
+function go(key) {
+  if (key.startsWith('project:')) view = { type: 'project', id: key.slice(8) };
+  else if (key.startsWith('group:')) view = { type: 'group', id: key.slice(6) };
+  else if (key.startsWith('label:')) view = { type: 'label', id: key.slice(6) };
+  else if (key.startsWith('filter:')) view = { type: 'filter', id: key.slice(7) };
+  else view = { type: key };
+  $('#search').value = '';
+  document.body.classList.remove('side-open');
+  $('#content').scrollTop = 0;
+  commit();
+}
+
+/* ---------- toasts / undo ---------- */
+function toast(msg, undoSnap, onUndo) {
+  const box = $('#toasts'); box.innerHTML = '';
+  const el = document.createElement('div'); el.className = 'toast';
+  const canUndo = !!(undoSnap || onUndo);
+  el.innerHTML = `<span>${esc(msg)}</span>${canUndo ? '<button class="undo">Zpět</button>' : ''}<button class="x" aria-label="Zavřít">${ic('x')}</button>`;
+  box.appendChild(el);
+  const kill = () => el.remove();
+  el.querySelector('.x').onclick = kill;
+  if (canUndo) el.querySelector('.undo').onclick = () => { if (undoSnap) restore(undoSnap); if (onUndo) onUndo(); kill(); toast('Vráceno zpět'); };
+  setTimeout(kill, canUndo ? 6000 : 2500);
+}
+
+/* ---------- actions ---------- */
+function toggleTask(id, row) {
+  const t = task(id); if (!t) return;
+  const before = snap();
+  if (t.done) { t.done = false; t.doneAt = null; if (t.parentId && task(t.parentId)?.done) { const p = task(t.parentId); p.done = false; p.doneAt = null; } commit(); toast('Úkol je zpět mezi aktivními', before); return; }
+  const finish = () => {
+    if (t.recur && t.due) {
+      t.due = nextDue(t.recur, t.due);
+      descendants(t.id).forEach(k => { k.done = false; k.doneAt = null; });
+      commit(); toast(`Další termín: ${dueLabel(t.due, t.time)}`, before);
+    } else {
+      t.done = true; t.doneAt = Date.now();
+      descendants(t.id).forEach(k => { if (!k.done) { k.done = true; k.doneAt = t.doneAt; } });
+      commit(); toast('Úkol dokončen', before);
+    }
+  };
+  if (!row || reduced) return finish();
+  row.classList.add('completing');
+  setTimeout(() => {
+    if (t.recur && t.due) return finish();
+    row.style.maxHeight = row.offsetHeight + 'px';
+    const subl = row.nextElementSibling && row.nextElementSibling.classList.contains('sublist') ? row.nextElementSibling : null;
+    if (subl) subl.style.display = 'none';
+    requestAnimationFrame(() => row.classList.add('collapsing'));
+    setTimeout(finish, 270);
+  }, 380);
+}
+function deleteTask(id) {
+  const t = task(id); if (!t) return;
+  const before = snap(); const ids = new Set([id, ...descendants(id).map(k => k.id)]);
+  S.tasks = S.tasks.filter(x => !ids.has(x.id));
+  closeModal(); commit(); toast(`Smazáno: ${t.title}`, before);
+}
+function addTask(fields) {
+  const t = { id: uid(), title: '', desc: '', due: null, time: null, priority: 4, labels: [], projectId: 'inbox', parentId: null, done: false, doneAt: null, order: maxOrder(), recur: null, collapsed: false, ...fields };
+  S.tasks.push(t); return t;
+}
+
+/* ---------- modals ---------- */
+let modalKind = null;
+function openModal(html, kind) {
+  modalKind = kind;
+  $('#modal-root').innerHTML = `<div class="backdrop" data-backdrop="1">${html}</div>`;
+}
+function closeModal() { $('#modal-root').innerHTML = ''; modalKind = null; }
+
+function openQuickAdd(ctx = {}) {
+  if (!ctx.projectId && !ctx.due && !ctx.parentId && !ctx.group) {
+    if (view.type === 'group' && myGroups().some(g => g.id === view.id)) ctx.group = view.id;
+    if (view.type === 'project') ctx.projectId = view.id;
+    if (view.type === 'today') ctx.due = today();
+    if (view.type === 'label') ctx.labels = [view.id];
+  }
+  openModal(`<div class="modal" role="dialog" aria-label="Rychlé přidání úkolu">
+    <div class="qa">
+      <input class="title" id="qa-title" placeholder="Např. Zavolat mámě zítra v 18 #Osobní p1 @telefon" autocomplete="off">
+      <input class="desc" id="qa-desc" placeholder="Popis" autocomplete="off">
+      <div class="chips" id="qa-chips"></div>
+    </div>
+    <div class="modal-foot"><span class="hint">Rozumím: dnes, zítra, v pátek, příští týden, 24.12., v 18:30, každé úterý, #projekt, @štítek, p1</span>
+      <button class="btn" data-act="close-modal">Zrušit</button><button class="btn primary" id="qa-save" data-act="qa-save" disabled>Přidat úkol</button></div>
+  </div>`, 'quick');
+  const inp = $('#qa-title'); inp.dataset.ctx = JSON.stringify(ctx);
+  const upd = () => {
+    const ctx = JSON.parse(inp.dataset.ctx || '{}');
+    const r = parseQuick(inp.value);
+    const due = ctx.picked !== undefined ? ctx.picked : (r.due || ctx.due || null);
+    const pid = r.project ? null : (ctx.projectId || 'inbox');
+    const chips = [];
+    const time = ctx.pickedTime !== undefined ? ctx.pickedTime : r.time;
+    const rem = ctx.pickedRemind || null;
+    chips.push(`<button type="button" class="chip ${due ? 'due ' + dueClass(due) : 'muted'}" data-act="qa-pick" data-value="${due || ''}" title="Vybrat datum v kalendáři">${ic('cal')}${due ? esc(dueLabel(due)) : 'Termín'}</button>`);
+    chips.push(`<button type="button" class="chip ${time ? '' : 'muted'}" data-act="qa-time" data-value="${time || ''}" title="Čas úkolu">${ic('clock')}${time ? esc(time) : 'Čas'}</button>`);
+    chips.push(`<button type="button" class="chip ${rem ? '' : 'muted'}" data-act="qa-remind" data-value="${rem || ''}" data-time="${time || ''}" title="Čas upozornění">${ic('bell')}${rem ? 'Upozornění ' + esc(rem) : 'Upozornění'}</button>`);
+    if (r.recur) chips.push(`<span class="chip">${ic('repeat')}${esc(recurText(r.recur))}</span>`);
+    const pr = r.priority || 4;
+    chips.push(`<span class="chip ${pr < 4 ? 'pri' + pr : 'muted'}">${ic('flag')}P${pr}</span>`);
+    const grp = ctx.group && G.groups.find(g => g.id === ctx.group);
+    if (grp) chips.push(`<span class="chip">${ic('users')}Skupina: ${esc(grp.name)}</span>`);
+    else chips.push(`<span class="chip">${ic('folder')}${esc(r.project ? r.project + (findProjectId(r.project) ? '' : ' (nový)') : projName(pid))}</span>`);
+    [...(ctx.labels || []), ...r.labels].forEach(l => chips.push(`<span class="chip">${ic('tag')}@${esc(l)}</span>`));
+    if (ctx.parentId && task(ctx.parentId)) chips.push(`<span class="chip">${ic('sub')}Podúkol: ${esc(task(ctx.parentId).title)}</span>`);
+    $('#qa-chips').innerHTML = chips.join('');
+    $('#qa-save').disabled = !r.title;
+  };
+  inp.addEventListener('input', upd); upd(); inp.focus();
+}
+function findProjectId(name) { const n = norm(name).replace(/\s+/g, ''); if (['dorucene', 'inbox'].includes(n)) return 'inbox'; return S.projects.find(p => norm(p.name).replace(/\s+/g, '') === n)?.id; }
+function saveQuickAdd() {
+  const inp = $('#qa-title'); if (!inp) return;
+  const ctx = JSON.parse(inp.dataset.ctx || '{}'); const r = parseQuick(inp.value);
+  if (!r.title) return;
+  const parent = ctx.parentId && task(ctx.parentId);
+  const time = ctx.pickedTime !== undefined ? ctx.pickedTime : r.time;
+  const remind = ctx.pickedRemind || null;
+  let due = ctx.picked !== undefined ? ctx.picked : (r.due || ctx.due || null);
+  if ((time || remind) && !due) due = today();
+  if (ctx.group) {
+    const g = G.groups.find(x => x.id === ctx.group); if (!g || !G.db) return;
+    const data = { groupId: g.id, title: r.title, desc: $('#qa-desc').value.trim(), due, time, priority: r.priority || 4, done: false, doneBy: null, doneAt: null, assignee: null, createdBy: G.me, createdAt: Date.now() };
+    closeModal();
+    G.db.collection('grouptasks').add(data).then(() => toast(`Přidáno do skupiny ${g.name}`)).catch(() => toast('Úkol se nepodařilo uložit do skupiny. Zkus to znovu.'));
+    return;
+  }
+  const t = addTask({
+    title: r.title, desc: $('#qa-desc').value.trim(),
+    due, time, remind, priority: r.priority || 4,
+    labels: [...new Set([...(ctx.labels || []), ...r.labels])],
+    projectId: r.project ? findOrCreateProject(r.project) : (parent ? parent.projectId : (ctx.projectId || 'inbox')),
+    parentId: parent ? parent.id : null, recur: r.recur,
+  });
+  markIfPast(t, t.due);
+  closeModal(); commit();
+  toast(`Přidáno do: ${projName(t.projectId)}${t.due ? ' · ' + dueLabel(t.due, t.time) : ''}`);
+}
+
+function openTask(id) {
+  const t = task(id); if (!t) return;
+  const ks = kids(t.id); const kd = ks.filter(k => k.done).length;
+  const rv = !t.recur ? '' : t.recur.t === 'w' && t.recur.days && t.recur.days.length > 1 ? 'keep' : t.recur.t === 'd' && t.recur.n > 1 ? 'keep' : t.recur.t;
+  const projOpts = [{ id: 'inbox', name: 'Doručené' }, ...[...S.projects].sort((a, b) => a.order - b.order)].map(p => `<option value="${p.id}" ${p.id === t.projectId ? 'selected' : ''}>${esc(p.name)}</option>`).join('');
+  const parent = t.parentId && task(t.parentId);
+  openModal(`<div class="modal big" role="dialog" aria-label="Detail úkolu">
+    <div class="detail" data-task="${t.id}">
+      <div class="crumb">${ic('folder')}${esc(projName(t.projectId))}${parent ? ` / <button data-act="open-task" data-id="${parent.id}">${esc(parent.title)}</button>` : ''}</div>
+      <input class="title" id="d-title" value="${esc(t.title)}" aria-label="Název úkolu">
+      <textarea id="d-desc" placeholder="Popis (volitelný)">${esc(t.desc)}</textarea>
+      <div class="fields">
+        <div class="field"><label for="d-due">Termín</label><button type="button" class="date-btn ${t.due ? dueClass(t.due) : 'none'}" id="d-due" data-act="d-pick" data-value="${t.due || ''}">${dateBtnHTML(t.due)}</button></div>
+        <div class="field"><label for="d-time">Začátek</label><input type="time" id="d-time" value="${t.time || ''}"></div>
+        ${remindFieldHTML('d', t.remind, true)}
+      </div>
+      ${remindHint}
+      <div class="fields">
+        <div class="field"><label for="d-recur">Opakování</label><select id="d-recur">
+          <option value="">Neopakovat</option><option value="d" ${rv === 'd' ? 'selected' : ''}>Každý den</option><option value="wd" ${rv === 'wd' ? 'selected' : ''}>Každý pracovní den</option>
+          <option value="w" ${rv === 'w' ? 'selected' : ''}>Každý týden</option><option value="m" ${rv === 'm' ? 'selected' : ''}>Každý měsíc</option>
+          ${rv === 'keep' ? `<option value="keep" selected>${esc(cap(recurText(t.recur)))}</option>` : ''}</select></div>
+        <div class="field"><label for="d-proj">Projekt</label><select id="d-proj">${projOpts}</select></div>
+      </div>
+      <div class="fields">
+        <div class="field"><span class="lab">Priorita</span><div class="prio" id="d-prio">${[1, 2, 3, 4].map(p => `<button type="button" class="p${p} ${t.priority === p ? 'on' : ''}" data-prio="${p}">${ic('flag')}P${p}</button>`).join('')}</div></div>
+        <div class="field"><label for="d-labels">Štítky</label><input id="d-labels" value="${esc(t.labels.join(', '))}" placeholder="telefon, práce"></div>
+      </div>
+      <div class="subs">
+        <h4>Podúkoly ${ks.length ? `<span class="prog">${kd}/${ks.length}</span>` : ''}</h4>
+        ${ks.length ? `<div class="bar"><i style="width:${Math.round(kd / ks.length * 100)}%"></i></div>` : ''}
+        ${ks.map(k => `<div class="sub-row ${k.done ? 'is-done' : ''}" data-id="${k.id}"><button class="check p${k.priority}" data-act="sub-toggle" aria-label="Přepnout podúkol">${ic('check')}</button><span class="st" data-act="open-task" data-id="${k.id}">${esc(k.title)}</span>${k.due ? `<span class="due ${dueClass(k.due)}" style="font-size:12px">${esc(dueLabel(k.due, k.time))}</span>` : ''}</div>`).join('')}
+        <div class="sub-add"><input id="d-sub" placeholder="Přidat podúkol (Enter)" autocomplete="off"></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn danger" data-act="delete-task">${ic('trash')} Smazat</button>
+      ${t.parentId ? '' : `<button class="btn" data-act="send-group">${ic('send')} Poslat do skupiny</button>`}
+      <button class="btn" data-act="close-modal">Zrušit</button><button class="btn primary" data-act="save-task">Uložit</button>
+    </div>
+  </div>`, 'task');
+  const title = $('#d-title'); title.focus(); title.setSelectionRange(title.value.length, title.value.length);
+}
+function saveTask(close = true) {
+  const box = $('.detail'); if (!box) return;
+  const t = task(box.dataset.task); if (!t) return;
+  const before = snap();
+  const title = $('#d-title').value.trim(); if (!title) { $('#d-title').focus(); return; }
+  t.title = title; t.desc = $('#d-desc').value.trim();
+  t.due = $('#d-due').dataset.value || null; t.time = $('#d-time').value || null;
+  if (t.time && !t.due) t.due = today();
+  const pr = $('#d-prio .on'); t.priority = pr ? +pr.dataset.prio : 4;
+  const np = $('#d-proj').value;
+  if (np !== t.projectId) { t.projectId = np; if (t.parentId && task(t.parentId)?.projectId !== np) t.parentId = null; descendants(t.id).forEach(k => k.projectId = np); }
+  t.labels = [...new Set($('#d-labels').value.split(',').map(s => s.trim().replace(/^@/, '')).filter(Boolean))];
+  const rv = $('#d-recur').value;
+  if (rv !== 'keep') {
+    if (!rv) t.recur = null;
+    else { if (!t.due) t.due = today(); t.recur = rv === 'd' ? { t: 'd', n: 1 } : rv === 'w' ? { t: 'w', days: [dow(t.due)] } : { t: rv }; }
+  }
+  t.remind = readRemind('d');
+  if (t.remind != null && !t.due) t.due = today();
+  t.snoozeUntil = null; markIfPast(t, t.due);
+  if (close) { closeModal(); commit(); toast('Změny uloženy', before); } else save();
+}
+function openProject(id) {
+  const p = id ? proj(id) : null; const col = p ? p.color : COLORS[S.projects.length % COLORS.length];
+  openModal(`<div class="modal" role="dialog" aria-label="${p ? 'Upravit projekt' : 'Nový projekt'}">
+    <div class="detail" data-project="${p ? p.id : ''}">
+      <h3 class="sec" style="margin:0">${p ? 'Upravit projekt' : 'Nový projekt'}</h3>
+      <div class="field"><label for="pr-name">Název</label><input id="pr-name" value="${esc(p ? p.name : '')}" placeholder="Např. Rekonstrukce koupelny" autocomplete="off"></div>
+      <div class="field"><span class="lab">Barva</span><div class="swatches" id="pr-col">${COLORS.map(c => `<button type="button" data-col="${c}" class="${c === col ? 'on' : ''}" style="background:${c}" aria-label="Barva ${c}"></button>`).join('')}</div></div>
+    </div>
+    <div class="modal-foot"><span class="hint"></span><button class="btn" data-act="close-modal">Zrušit</button><button class="btn primary" data-act="save-project">${p ? 'Uložit' : 'Vytvořit projekt'}</button></div>
+  </div>`, 'project');
+  $('#pr-name').focus();
+}
+function saveProject() {
+  const box = $('[data-project]', $('#modal-root')); const name = $('#pr-name').value.trim();
+  if (!name) { $('#pr-name').focus(); return; }
+  const color = $('#pr-col .on')?.dataset.col || COLORS[0];
+  if (box.dataset.project) { const p = proj(box.dataset.project); p.name = name; p.color = color; closeModal(); commit(); }
+  else { const p = { id: 'p-' + uid(), name, color, order: S.projects.length ? Math.max(...S.projects.map(p => p.order)) + 1 : 0 }; S.projects.push(p); closeModal(); go('project:' + p.id); }
+}
+
+function openDaily(id) {
+  const d = id ? S.daily.find(x => x.id === id) : null;
+  openModal(`<div class="modal" role="dialog" aria-label="Denní úkol">
+    <div class="detail" data-daily-id="${d ? d.id : ''}">
+      <h3 class="sec" style="margin:0">${d ? 'Upravit denní úkol' : 'Nový denní úkol'}</h3>
+      <div class="field"><label for="dl-title">Název</label><input id="dl-title" value="${esc(d ? d.title : '')}" placeholder="Např. Vypít 2 litry vody" autocomplete="off"></div>
+      <div class="fields">
+        <div class="field"><label for="dl-time">Začátek (volitelný)</label><input type="time" id="dl-time" value="${d && d.time ? d.time : ''}"></div>
+        ${remindFieldHTML('dl', d ? d.remind : null, false)}
+      </div>
+      ${remindHint}
+      <p class="view-sub" style="margin:0">Denní úkol se o půlnoci sám obnoví. Stačí ho zadat jednou.</p>
+    </div>
+    <div class="modal-foot">${d ? `<button class="btn danger" data-act="delete-daily">${ic('trash')} Smazat</button>` : '<span class="hint"></span>'}
+      <button class="btn" data-act="close-modal">Zrušit</button><button class="btn primary" data-act="save-daily">${d ? 'Uložit' : 'Přidat'}</button></div>
+  </div>`, 'daily');
+  $('#dl-title').focus();
+}
+function saveDaily() {
+  const id = $('[data-daily-id]').dataset.dailyId; const title = $('#dl-title').value.trim();
+  if (!title) return $('#dl-title').focus();
+  const time = $('#dl-time').value || null; const remind = readRemind('dl');
+  let d;
+  if (id) { d = S.daily.find(x => x.id === id); d.title = title; d.time = time; d.remind = remind; }
+  else { d = { id: uid(), title, time, remind, createdAt: today(), order: S.daily.reduce((m, x) => Math.max(m, x.order), -1) + 1, doneDates: [] }; S.daily.push(d); }
+  d.snoozeUntil = null; markIfPast(d, today());
+  closeModal(); commit(); toast(id ? 'Změny uloženy' : 'Denní úkol přidán');
+}
+
+/* ---------- groups (shared through the artifact's database) ---------- */
+const G = { status: 'loading', db: null, user: null, me: null, canWrite: true, groups: [], tasks: [], names: {}, avatars: {} };
+const myGroups = () => G.groups.filter(g => (g.members || []).includes(G.me)).sort((a, b) => a.name.localeCompare(b.name, 'cs'));
+const grp = id => G.groups.find(g => g.id === id);
+const gtask = id => G.tasks.find(t => t.id === id);
+async function initGroups() {
+  const finish = s => { clearTimeout(timer); G.status = s; render(); };
+  const timer = setTimeout(() => { if (G.status === 'loading') { G.status = 'slow'; render(); } }, 10000);
+  if (!window.claude || typeof window.claude.use !== 'function') return finish('off');
+  try {
+    const [db, user] = await Promise.all([window.claude.use('db'), window.claude.use('user')]);
+    if (!db || !user) return finish('off');
+    G.db = db; G.user = user; G.me = await user.id();
+    if (!G.me) return finish('off');
+    const c = await user.can('data.write'); G.canWrite = c !== false;
+    let gOk = false, tOk = false;
+    const mark = () => { if (gOk && tOk && G.status !== 'ready') finish('ready'); };
+    db.collection('groups').onSnapshot(s => {
+      G.groups = s.docs.map(d => ({ id: d.id, ...d.data() }));
+      if (!s.metadata.fromCache) gOk = true; mark(); render();
+    }, () => finish('error'));
+    db.collection('grouptasks').onSnapshot(s => {
+      G.tasks = s.docs.map(d => ({ id: d.id, ...d.data() }));
+      if (!s.metadata.fromCache) tOk = true; mark(); render();
+    }, () => finish('error'));
+  } catch (e) { finish('off'); }
+}
+function personName(id) { if (!id) return ''; if (id === G.me) return 'Ty'; return G.names[id] || 'Člen skupiny'; }
+function avHTML(id) { const src = G.avatars[id]; return src ? `<img class="av" src="${esc(src)}" alt="">` : `<span class="av"></span>`; }
+async function resolveNames() {
+  if (!G.user) return;
+  const ids = new Set(); G.groups.forEach(g => (g.members || []).forEach(m => ids.add(m)));
+  G.tasks.forEach(t => [t.assignee, t.createdBy, t.doneBy].forEach(x => x && ids.add(x)));
+  const need = [...ids].filter(id => !(id in G.names)); if (!need.length) return;
+  need.forEach(id => G.names[id] = '');
+  try {
+    const ps = await G.user.profiles(need);
+    need.forEach(id => { G.names[id] = (ps[id] && ps[id].name) || ''; G.avatars[id] = (ps[id] && ps[id].avatarUrl) || ''; });
+    render();
+  } catch (e) {}
+}
+function renderGroupNav() {
+  const box = $('#nav-groups'); if (!box) return;
+  if (G.status === 'off') { box.innerHTML = `<div class="side-note">Skupiny fungují po přihlášení na claude.ai.</div>`; return; }
+  if (G.status === 'loading') { box.innerHTML = `<div class="side-note">Načítám skupiny…</div>`; return; }
+  if (G.status === 'error') { box.innerHTML = `<div class="side-note">Skupiny se teď nepodařilo načíst.</div>`; return; }
+  const mine = myGroups();
+  box.innerHTML = mine.map(g => {
+    const on = view.type === 'group' && view.id === g.id;
+    const n = G.tasks.filter(t => t.groupId === g.id && !t.done).length;
+    return `<button class="nav-item ${on ? 'on' : ''}" data-nav="group:${g.id}" data-drop="group:${g.id}"><span class="gdot" style="background:${esc(g.color)}"></span><span>${esc(g.name)}</span><span class="count">${n || ''}</span></button>`;
+  }).join('') + `<button class="nav-item ${view.type === 'groups' ? 'on' : ''}" data-nav="groups" style="color:var(--fg-2)">${ic('users')}<span>${mine.length ? 'Všechny skupiny' : 'Vytvořit nebo se připojit'}</span></button>`
+    + (G.status === 'slow' ? `<div class="side-note">Skupiny se načítají déle než obvykle.</div>` : '');
+}
+function gRowHTML(t, showGroup) {
+  const meta = [];
+  if (t.due) meta.push(`<button class="due ${dueClass(t.due)}" data-act="g-pick-due" title="Změnit termín">${ic('cal')}${esc(dueLabel(t.due, t.time))}</button>`);
+  if (t.assignee) meta.push(`<span class="who">${avHTML(t.assignee)}${esc(personName(t.assignee))}</span>`);
+  if (t.done && t.doneBy) meta.push(`<span>${ic('check')}Splnil(a): ${esc(personName(t.doneBy))}</span>`);
+  else if (t.createdBy && t.createdBy !== t.assignee) meta.push(`<span>Od: ${esc(personName(t.createdBy))}</span>`);
+  const g = grp(t.groupId);
+  return `<div class="task ${t.done ? 'is-done' : ''}" data-gtid="${t.id}">
+    <button class="check p${t.priority || 4}" data-act="g-toggle" aria-label="${t.done ? 'Vrátit úkol' : 'Dokončit úkol'}">${ic('check')}</button>
+    <div class="task-body" data-act="g-open"><div><span class="task-title">${esc(t.title)}</span></div>
+      ${t.desc ? `<div class="task-desc">${esc(t.desc.split('\n')[0])}</div>` : ''}<div class="task-meta">${meta.join('')}</div></div>
+    ${showGroup && g ? `<span class="g-badge">${esc(g.name)}<span class="gdot" style="background:${esc(g.color)};width:8px;height:8px"></span></span>` : ''}
+  </div>`;
+}
+function groupStatusHTML() {
+  if (G.status === 'off') return empty('Skupiny tu nejsou dostupné', 'Sdílené skupiny fungují, když máš Úkolníček otevřený na claude.ai a jsi přihlášený.');
+  if (G.status === 'error') return empty('Skupiny se nepodařilo načíst', 'Zkus stránku otevřít znovu později.');
+  if (G.status === 'loading') return `<p class="view-sub">Načítám skupiny…</p>`;
+  if (G.status === 'slow') return `<p class="view-sub">Skupiny se zatím nepodařilo načíst. Zkontroluj připojení k internetu.</p>`;
+  return '';
+}
+function groupsOverviewHTML() {
+  let h = head('Skupiny', 'Sdílené úkoly s rodinou, třídou nebo týmem', G.status === 'ready' && G.canWrite ? `<button class="ghost" data-act="new-group">${ic('plus')}Nová skupina</button><button class="ghost" data-act="g-invite">${ic('users')}Jak pozvat lidi</button><button class="ghost" data-act="g-share">${ic('send')}Sdílet odkaz</button>` : '');
+  const st = groupStatusHTML(); if (st) return h + st;
+  const all = [...G.groups].sort((a, b) => a.name.localeCompare(b.name, 'cs'));
+  if (!all.length) return h + empty('Zatím žádná skupina', 'Vytvoř první skupinu tlačítkem + u Skupin v levém panelu a pozvi do ní lidi.');
+  h += `<div class="group-cards">${all.map(g => {
+    const member = (g.members || []).includes(G.me); const n = G.tasks.filter(t => t.groupId === g.id && !t.done).length;
+    return `<div class="group-card"><div class="gc-head"><span class="gdot" style="background:${esc(g.color)}"></span>${esc(g.name)}</div>
+      <div class="gc-sub">${pl((g.members || []).length, 'člen', 'členové', 'členů')} · ${pl(n, 'otevřený úkol', 'otevřené úkoly', 'otevřených úkolů')}</div>
+      <div class="gc-actions">${member ? `<button class="btn" data-nav="group:${g.id}">Otevřít</button>` : `<button class="btn primary" data-act="g-join" data-gid="${g.id}">Připojit se</button><button class="btn" data-nav="group:${g.id}">Zobrazit</button>`}</div></div>`;
+  }).join('')}</div>`;
+  return h;
+}
+function groupViewHTML() {
+  const g = grp(view.id);
+  if (!g) return head('Skupina') + (groupStatusHTML() || empty('Skupina už neexistuje', 'Možná ji někdo smazal.'));
+  const member = (g.members || []).includes(G.me), mine = g.createdBy === G.me;
+  const list = G.tasks.filter(t => t.groupId === g.id);
+  const open = list.filter(t => !t.done).sort(sortTime);
+  const done = list.filter(t => t.done).sort((a, b) => (b.doneAt || 0) - (a.doneAt || 0)).slice(0, 30);
+  const acts = [`<button class="ghost" data-act="g-invite">${ic('users')}Pozvat lidi</button>`, `<button class="ghost" data-act="g-share" data-gid="${g.id}">${ic('send')}Sdílet odkaz</button>`];
+  if (member && G.canWrite) acts.push(`<button class="ghost" data-act="g-leave">Opustit</button>`);
+  if (mine && G.canWrite) acts.push(`<button class="ghost danger" data-act="g-delete">${ic('trash')}Smazat</button>`);
+  let h = head(`<span class="gdot" style="background:${esc(g.color)}"></span>${esc(g.name)}`, `${pl((g.members || []).length, 'člen', 'členové', 'členů')} · ${pl(open.length, 'otevřený úkol', 'otevřené úkoly', 'otevřených úkolů')}`, acts.join(''));
+  h += `<div class="members">${(g.members || []).map(m => `<span class="member">${avHTML(m)}${esc(personName(m))}</span>`).join('')}</div>`;
+  if (!G.canWrite) h += `<div class="note">Skupinu můžeš jen prohlížet. K úpravám potřebuješ od autora Úkolníčku oprávnění k úpravám.</div>`;
+  else if (!member) h += `<div class="note">Nejsi členem této skupiny. <button data-act="g-join" data-gid="${g.id}">Připojit se</button></div>`;
+  h += `<div class="list">${open.map(t => gRowHTML(t)).join('')}</div>`;
+  if (member && G.canWrite) h += addRow({ group: g.id }, 'Přidat úkol do skupiny');
+  if (!open.length) h += empty('Ve skupině nejsou žádné úkoly', 'Přidej úkol, nebo sem pošli svůj vlastní úkol přes „Poslat do skupiny“ v jeho detailu.');
+  if (done.length) h += `<div class="group" style="margin-top:28px"><div class="group-head">Hotové<span class="gsub">${done.length}</span></div><div class="list">${done.map(t => gRowHTML(t)).join('')}</div></div>`;
+  return h;
+}
+function openGroupModal() {
+  openModal(`<div class="modal" role="dialog" aria-label="Nová skupina">
+    <div class="detail" data-newgroup="1">
+      <h3 class="sec" style="margin:0">Nová skupina</h3>
+      <div class="field"><label for="gr-name">Název</label><input id="gr-name" placeholder="Např. Rodina, 8.B, Tým marketing" autocomplete="off"></div>
+      <div class="field"><span class="lab">Barva</span><div class="swatches" id="pr-col">${COLORS.map((c, i) => `<button type="button" data-col="${c}" class="${i === 5 ? 'on' : ''}" style="background:${c}" aria-label="Barva ${c}"></button>`).join('')}</div></div>
+      <p class="view-sub" style="margin:0">Skupinu uvidí všichni, se kterými Úkolníček sdílíš. Připojí se k ní jedním klikem.</p>
+    </div>
+    <div class="modal-foot"><span class="hint"></span><button class="btn" data-act="close-modal">Zrušit</button><button class="btn primary" data-act="save-group">Vytvořit skupinu</button></div>
+  </div>`, 'group');
+  $('#gr-name').focus();
+}
+async function saveGroup() {
+  const name = $('#gr-name').value.trim(); if (!name) return $('#gr-name').focus();
+  const color = $('#pr-col .on')?.dataset.col || COLORS[5];
+  closeModal();
+  try { const ref = await G.db.collection('groups').add({ name, color, createdBy: G.me, members: [G.me], createdAt: Date.now() }); go('group:' + ref.id); toast(`Skupina ${name} vytvořena`); }
+  catch (e) { toast(e && e.code === 'quota_exceeded' ? 'Úložiště skupin je plné. Smaž nějakou starou skupinu.' : 'Skupinu se nepodařilo vytvořit. Zkus to znovu.'); }
+}
+function openInvite() {
+  openModal(`<div class="modal" role="dialog" aria-label="Pozvat lidi">
+    <div class="detail">
+      <h3 class="sec" style="margin:0">Jak pozvat lidi do skupiny</h3>
+      <ol class="steps">
+        <li>Nahoře u Úkolníčku klikni na <b>Sdílet</b>.</li>
+        <li>Pozvi lidi <b>e-mailem</b> a dej jim oprávnění <b>k úpravám</b> (Editor). Bez něj můžou skupinu jen prohlížet.</li>
+        <li>Až si Úkolníček otevřou, kliknou u skupiny na <b>Připojit se</b>.</li>
+      </ol>
+      <p class="view-sub" style="margin:0">Sdílené jsou jen skupiny a jejich úkoly. Tvoje osobní úkoly, projekty a denní úkoly zůstávají jen u tebe.</p>
+    </div>
+    <div class="modal-foot"><span class="hint"></span><button class="btn" data-act="g-share" data-gid="${view.type === 'group' ? view.id : ''}">${ic('send')} Sdílet odkaz</button><button class="btn primary" data-act="close-modal">Rozumím</button></div>
+  </div>`, 'info');
+}
+const APP_URL = 'https://claude.ai/artifact/5PnRvVpytTUjzghitP194X';
+let shareData = null;
+function openShare(gid) {
+  const g = gid && grp(gid);
+  const url = g ? `${APP_URL}#g-${g.id}` : APP_URL;
+  const text = g ? `Přidej se k mé skupině „${g.name}“ v Úkolníčku` : 'Přidej se ke mně do Úkolníčku';
+  shareData = { url, text };
+  const enc = encodeURIComponent;
+  const apps = [
+    ['WhatsApp', '#25D366', `https://wa.me/?text=${enc(text + ': ' + url)}`],
+    ['Telegram', '#2AABEE', `https://t.me/share/url?url=${enc(url)}&text=${enc(text)}`],
+    ['Facebook', '#1877F2', `https://www.facebook.com/sharer/sharer.php?u=${enc(url)}`],
+    ['X', '#7a7a7a', `https://x.com/intent/tweet?text=${enc(text)}&url=${enc(url)}`],
+    ['E-mail', '#8a8580', `mailto:?subject=${enc('Pozvánka do Úkolníčku')}&body=${enc(text + ': ' + url)}`],
+  ];
+  const native = typeof navigator.share === 'function';
+  openModal(`<div class="modal" role="dialog" aria-label="Sdílet odkaz">
+    <div class="detail">
+      <h3 class="sec" style="margin:0">${g ? `Sdílet skupinu ${esc(g.name)}` : 'Sdílet Úkolníček'}</h3>
+      <div class="field"><label for="share-url">Odkaz</label><div class="share-link"><input id="share-url" readonly value="${esc(url)}"><button class="btn primary" data-act="share-copy">Kopírovat</button></div></div>
+      ${native ? `<button class="share-native" data-act="share-native">${ic('send')}Sdílet přes aplikace v telefonu</button>` : ''}
+      <div class="share-grid">${apps.map(([n, c, href]) => `<a class="share-btn" href="${esc(href)}" target="_blank" rel="noopener"><span class="sd" style="background:${c}"></span>${n}</a>`).join('')}</div>
+      <p class="rem-hint" style="margin:0">${ic('users')}Odkaz otevře jen ten, koho pozveš přes Sdílet nahoře u Úkolníčku, s oprávněním k úpravám.</p>
+    </div>
+    <div class="modal-foot"><span class="hint"></span><button class="btn" data-act="g-invite">Jak pozvat lidi</button><button class="btn" data-act="close-modal">Hotovo</button></div>
+  </div>`, 'info');
+}
+function openGTask(id) {
+  const t = gtask(id); if (!t) return; const g = grp(t.groupId);
+  const members = g ? (g.members || []) : [];
+  const ro = !G.canWrite;
+  openModal(`<div class="modal big" role="dialog" aria-label="Úkol skupiny">
+    <div class="detail" data-gtask="${t.id}">
+      <div class="crumb">${ic('users')}${esc(g ? g.name : 'Skupina')}${t.createdBy ? ` · od: ${esc(personName(t.createdBy))}` : ''}</div>
+      <input class="title" id="d-title" value="${esc(t.title)}" aria-label="Název úkolu" ${ro ? 'disabled' : ''}>
+      <textarea id="d-desc" placeholder="Popis (volitelný)" ${ro ? 'disabled' : ''}>${esc(t.desc || '')}</textarea>
+      <div class="fields">
+        <div class="field"><label for="d-due">Termín</label><button type="button" class="date-btn ${t.due ? dueClass(t.due) : 'none'}" id="d-due" data-act="d-pick" data-value="${t.due || ''}" ${ro ? 'disabled' : ''}>${dateBtnHTML(t.due)}</button></div>
+        <div class="field"><label for="d-time">Čas</label><input type="time" id="d-time" value="${t.time || ''}" ${ro ? 'disabled' : ''}></div>
+        <div class="field"><label for="d-assignee">Pro koho</label><select id="d-assignee" ${ro ? 'disabled' : ''}><option value="">Pro kohokoli</option>${members.map(m => `<option value="${esc(m)}" ${m === t.assignee ? 'selected' : ''}>${esc(personName(m))}</option>`).join('')}</select></div>
+      </div>
+      <div class="field"><span class="lab">Priorita</span><div class="prio" id="d-prio">${[1, 2, 3, 4].map(p => `<button type="button" class="p${p} ${(t.priority || 4) === p ? 'on' : ''}" data-prio="${p}" ${ro ? 'disabled' : ''}>${ic('flag')}P${p}</button>`).join('')}</div></div>
+    </div>
+    <div class="modal-foot">${ro ? '<span class="hint">Jen pro čtení</span><button class="btn" data-act="close-modal">Zavřít</button>' : `
+      <button class="btn danger" data-act="g-delete-task">${ic('trash')} Smazat</button>
+      <button class="btn" data-act="close-modal">Zrušit</button><button class="btn primary" data-act="g-save-task">Uložit</button>`}</div>
+  </div>`, ro ? 'info' : 'gtask');
+}
+async function saveGTask() {
+  const box = $('[data-gtask]'); const t = gtask(box.dataset.gtask); if (!t) return closeModal();
+  const title = $('#d-title').value.trim(); if (!title) return $('#d-title').focus();
+  const pr = $('#d-prio .on');
+  const patch = { title, desc: $('#d-desc').value.trim(), due: $('#d-due').dataset.value || null, time: $('#d-time').value || null, assignee: $('#d-assignee').value || null, priority: pr ? +pr.dataset.prio : 4 };
+  if (patch.time && !patch.due) patch.due = today();
+  closeModal();
+  try { await G.db.doc('grouptasks/' + t.id).update(patch); toast('Změny uloženy'); } catch (e) { toast('Změny se nepodařilo uložit. Zkus to znovu.'); }
+}
+async function sendToGroup(id, gid) {
+  const t = task(id), g = grp(gid); if (!t || !g || !G.db) return;
+  const subs = descendants(id).filter(k => !k.done).map(k => '- ' + k.title);
+  const desc = [t.desc || '', subs.length ? 'Podúkoly:\n' + subs.join('\n') : ''].filter(Boolean).join('\n\n');
+  const ref = G.db.collection('grouptasks').doc();
+  try { await ref.set({ groupId: gid, title: t.title, desc, due: t.due || null, time: t.time || null, priority: t.priority || 4, done: false, doneBy: null, doneAt: null, assignee: null, createdBy: G.me, createdAt: Date.now() }); }
+  catch (e) { return toast('Úkol se nepodařilo poslat. Zkus to znovu.'); }
+  const before = snap(); const ids = new Set([id, ...descendants(id).map(k => k.id)]);
+  S.tasks = S.tasks.filter(x => !ids.has(x.id));
+  closeModal(); commit();
+  toast(`Posláno do skupiny ${g.name}`, before, () => ref.delete().catch(() => {}));
+}
+function openMenu(anchor, title, items, emptyHTML, onPick) {
+  if (pk && pk.anchor === anchor) return closePicker();
+  closePicker();
+  const el = document.createElement('div'); el.className = 'picker menu'; el.setAttribute('role', 'menu');
+  el.innerHTML = `<div class="tp-head">${esc(title)}</div>` + (items.length ? items.map(i => `<button type="button" class="mi" data-mi="${esc(i.id)}" role="menuitem">${i.icon}<span>${esc(i.label)}</span>${i.count ? `<span class="count">${i.count}</span>` : ''}</button>`).join('') : emptyHTML);
+  pk = { anchor, el, onPick };
+  el.addEventListener('click', e => {
+    e.stopPropagation();
+    const b = e.target.closest('[data-mi]'); if (b) { const fn = pk.onPick; closePicker(); return fn(b.dataset.mi); }
+    const a = e.target.closest('[data-menu-act]'); if (a) { closePicker(); closeModal(); if (a.dataset.menuAct === 'new-group') openGroupModal(); }
+  });
+  document.body.appendChild(el); placePicker();
+}
+
+/* ---------- reminders ---------- */
+const REM_OPTS = [['', 'Bez oznámení'], ['0', 'V čase začátku'], ['5', '5 minut předem'], ['15', '15 minut předem'], ['30', '30 minut předem'], ['60', '1 hodinu předem'], ['1440', '1 den předem'], ['custom', 'Vlastní čas…']];
+const remindHint = `<p class="rem-hint">${ic('bell')}Oznámení se zobrazí se zvukem, když máš Úkolníček otevřený. Bez času začátku se počítá od 9:00.</p>`;
+function remindFieldHTML(p, r, allowDay) {
+  const v = r == null ? '' : typeof r === 'string' ? 'custom' : String(r);
+  const opts = REM_OPTS.filter(([k]) => allowDay || k !== '1440');
+  return `<div class="field"><label for="${p}-remind">Oznámení</label><select id="${p}-remind" data-remsel="${p}">${opts.map(([k, l]) => `<option value="${k}" ${k === v ? 'selected' : ''}>${l}</option>`).join('')}</select></div>
+    <div class="field" id="${p}-rtime-f" ${v === 'custom' ? '' : 'hidden'}><label for="${p}-rtime">Čas oznámení</label><input type="time" id="${p}-rtime" value="${typeof r === 'string' ? r : ''}"></div>`;
+}
+function readRemind(p) { const v = $(`#${p}-remind`).value; if (v === '') return null; if (v === 'custom') return $(`#${p}-rtime`).value || null; return +v; }
+function remindTime(day, time, r) {
+  const [y, m, d] = day.split('-').map(Number);
+  if (typeof r === 'string') { const [h, mi] = r.split(':').map(Number); return new Date(y, m - 1, d, h, mi).getTime(); }
+  const [h, mi] = (time || '09:00').split(':').map(Number);
+  return new Date(y, m - 1, d, h, mi).getTime() - r * 60000;
+}
+function remindLabel(day, time, r) {
+  const at = new Date(remindTime(day, time, r)); const hm = `${pad(at.getHours())}:${pad(at.getMinutes())}`;
+  return iso(at) === day ? hm : `${dueLabel(iso(at))} ${hm}`;
+}
+const remindKey = (o, day) => [day, o.time || '', String(o.remind)].join('|');
+function markIfPast(o, day) { if (o.remind != null && day && Date.now() >= remindTime(day, o.time, o.remind)) o.remindedFor = remindKey(o, day); }
+let actx = null;
+document.addEventListener('pointerdown', () => { if (!actx) { try { actx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} } });
+function beep() {
+  if (!actx) return;
+  try {
+    if (actx.state === 'suspended') actx.resume();
+    const t0 = actx.currentTime;
+    [[0, 784], [0.2, 1046]].forEach(([d, f]) => {
+      const o = actx.createOscillator(), g = actx.createGain(); o.type = 'sine'; o.frequency.value = f;
+      g.gain.setValueAtTime(0.0001, t0 + d); g.gain.exponentialRampToValueAtTime(0.18, t0 + d + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t0 + d + 0.35);
+      o.connect(g).connect(actx.destination); o.start(t0 + d); o.stop(t0 + d + 0.4);
+    });
+  } catch (e) {}
+}
+function showReminder(kind, o) {
+  const box = $('#reminders'); if (box.querySelector(`[data-rid="${o.id}"]`)) return;
+  const sub = kind === 'daily' ? `Denní úkol${o.time ? ' · začátek ' + o.time : ''}` : `${dueLabel(o.due, o.time)} · ${projName(o.projectId)}`;
+  const el = document.createElement('div'); el.className = 'rem'; el.dataset.rid = o.id; el.dataset.kind = kind; el.setAttribute('role', 'alert');
+  el.innerHTML = `<span class="bell">${ic('bell')}</span><span class="rk">Připomenutí</span><span class="rt">${esc(o.title)}</span><span class="rs">${esc(sub)}</span>
+    <div class="ra"><button class="btn primary" data-act="rem-done">Hotovo</button><button class="btn" data-act="rem-snooze">Odložit o 10 min</button><button class="btn" data-act="rem-close">Zavřít</button></div>`;
+  box.appendChild(el); beep();
+}
+function checkReminders() {
+  const now = Date.now(); let changed = false;
+  const consider = (kind, o, day) => {
+    if (o.snoozeUntil && now >= o.snoozeUntil) { o.snoozeUntil = null; changed = true; return showReminder(kind, o); }
+    if (o.remind == null || !day) return;
+    const at = remindTime(day, o.time, o.remind), k = remindKey(o, day);
+    if (o.remindedFor === k || now < at) return;
+    o.remindedFor = k; changed = true;
+    if (now - at < 12 * 3600e3) showReminder(kind, o);
+  };
+  S.tasks.forEach(t => { if (!t.done) consider('task', t, t.due); });
+  S.daily.forEach(d => { if (!dailyDone(d)) consider('daily', d, today()); });
+  if (changed) save();
+}
+function remObj(card) { return card.dataset.kind === 'daily' ? S.daily.find(x => x.id === card.dataset.rid) : task(card.dataset.rid); }
+
+/* ---------- date picker ---------- */
+const MON_N = ['Leden','Únor','Březen','Duben','Květen','Červen','Červenec','Srpen','Září','Říjen','Listopad','Prosinec'];
+const DOW_S = ['Ne','Po','Út','St','Čt','Pá','So'];
+function dateBtnHTML(v) {
+  if (!v) return `${ic('cal')}<span>Bez termínu</span>`;
+  const dt = fromIso(v); const yr = dt.getFullYear() !== new Date().getFullYear() ? ' ' + dt.getFullYear() : '';
+  const rel = dueLabel(v); const lbl = ['Dnes', 'Zítra', 'Včera'].includes(rel) ? `${rel}, ${longDate(v)}` : `${cap(DOW[dt.getDay()])} ${longDate(v)}${yr}`;
+  return `${ic('cal')}<span>${esc(lbl)}</span>`;
+}
+let pk = null;
+function openPicker(anchor, value, onPick) {
+  if (pk && pk.anchor === anchor) return closePicker();
+  closePicker();
+  const base = value ? fromIso(value) : new Date();
+  pk = { anchor, value: value || null, onPick, month: new Date(base.getFullYear(), base.getMonth(), 1), el: document.createElement('div') };
+  pk.el.className = 'picker'; pk.el.setAttribute('role', 'dialog'); pk.el.setAttribute('aria-label', 'Vybrat datum');
+  pk.el.addEventListener('click', e => {
+    e.stopPropagation();
+    const nav = e.target.closest('[data-pk-nav]');
+    if (nav) { pk.month.setMonth(pk.month.getMonth() + +nav.dataset.pkNav); return drawPicker(); }
+    const day = e.target.closest('[data-pk-day]');
+    if (day) { const fn = pk.onPick, v = day.dataset.pkDay || null; closePicker(); return fn(v); }
+  });
+  document.body.appendChild(pk.el); drawPicker();
+  const sel = pk.el.querySelector('.sel') || pk.el.querySelector('.today'); if (sel) sel.focus({ preventScroll: true });
+}
+function drawPicker() {
+  const t = today(), m = pk.month, nextMon = addDays(t, dayDelta(1, false));
+  const offset = (m.getDay() + 6) % 7; const days = new Date(m.getFullYear(), m.getMonth() + 1, 0).getDate();
+  const cells = Math.ceil((offset + days) / 7) * 7; const start = iso(new Date(m.getFullYear(), m.getMonth(), 1 - offset));
+  let grid = ['Po', 'Út', 'St', 'Čt', 'Pá', 'So', 'Ne'].map(d => `<span class="wd">${d}</span>`).join('');
+  for (let i = 0; i < cells; i++) {
+    const d = addDays(start, i), dt = fromIso(d);
+    const cls = [dt.getMonth() !== m.getMonth() ? 'out' : '', d < t ? 'past' : '', d === t ? 'today' : '', d === pk.value ? 'sel' : ''].join(' ');
+    grid += `<button type="button" class="${cls}" data-pk-day="${d}" aria-label="${cap(DOW[dt.getDay()])} ${longDate(d)}">${dt.getDate()}</button>`;
+  }
+  const q = (cls, label, v, when) => `<button type="button" class="${cls}" data-pk-day="${v}">${ic(cls === 'q-none' ? 'x' : 'cal')}<span>${label}</span><span class="when">${when}</span></button>`;
+  pk.el.innerHTML = `<div class="pk-quick">
+      ${q('q-today', 'Dnes', t, DOW_S[dow(t)])}
+      ${q('q-tom', 'Zítra', addDays(t, 1), DOW_S[dow(addDays(t, 1))])}
+      ${q('q-next', 'Příští týden', nextMon, `Po ${fromIso(nextMon).getDate()}. ${fromIso(nextMon).getMonth() + 1}.`)}
+      ${q('q-none', 'Bez termínu', '', '')}
+    </div>
+    <div class="pk-head"><button type="button" class="icon-btn" data-pk-nav="-1" aria-label="Předchozí měsíc"><svg class="i" viewBox="0 0 24 24" style="transform:rotate(180deg)">${I.chev}</svg></button><b>${MON_N[m.getMonth()]} ${m.getFullYear()}</b><button type="button" class="icon-btn" data-pk-nav="1" aria-label="Další měsíc">${ic('chev')}</button></div>
+    <div class="pk-grid">${grid}</div>`;
+  placePicker();
+}
+function placePicker() {
+  if (!pk) return;
+  const r = pk.anchor.getBoundingClientRect(), el = pk.el, w = el.offsetWidth, h = el.offsetHeight;
+  let left = Math.min(Math.max(8, r.left), innerWidth - w - 8), top = r.bottom + 6;
+  if (top + h > innerHeight - 8) top = Math.max(8, r.top - h - 6);
+  el.style.left = left + 'px'; el.style.top = top + 'px';
+}
+function openTimePicker(anchor, value, onPick, o) {
+  if (pk && pk.anchor === anchor) return closePicker();
+  closePicker();
+  const el = document.createElement('div'); el.className = 'picker tpicker'; el.setAttribute('role', 'dialog'); el.setAttribute('aria-label', o.title);
+  const presets = (o.presets || []).map(([lbl, v]) => `<button type="button" class="${v === value ? 'on' : ''}" data-tp="${v}">${esc(lbl)}</button>`).join('');
+  el.innerHTML = `<div class="tp-head">${esc(o.title)}</div>
+    <div class="tp-row"><input type="time" id="tp-input" value="${value || ''}" aria-label="${esc(o.title)}"><button type="button" class="btn primary" data-tp-ok="1">Nastavit</button></div>
+    ${o.sub ? `<div class="tp-sub">${esc(o.sub)}</div>` : ''}
+    <div class="tp-presets">${presets}</div>
+    <button type="button" class="tp-clear" data-tp="">${ic('x')}${esc(o.clear)}</button>`;
+  pk = { anchor, el, onPick };
+  const done = v => { const fn = pk.onPick; closePicker(); fn(v || null); };
+  el.addEventListener('click', e => {
+    e.stopPropagation();
+    if (e.target.closest('[data-tp-ok]')) return done($('#tp-input').value);
+    const b = e.target.closest('[data-tp]'); if (b) done(b.dataset.tp);
+  });
+  el.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); done($('#tp-input').value); } });
+  document.body.appendChild(el); placePicker(); $('#tp-input').focus();
+}
+const minus = (hm, min) => { const [h, m] = hm.split(':').map(Number); let x = h * 60 + m - min; if (x < 0) return null; return `${pad(Math.floor(x / 60))}:${pad(x % 60)}`; };
+function closePicker() { if (pk) { pk.el.remove(); pk = null; } }
+addEventListener('resize', closePicker);
+document.addEventListener('scroll', e => { if (pk && !pk.el.contains(e.target)) closePicker(); }, true);
+
+/* ---------- theme ---------- */
+function effectiveDark() { const a = document.documentElement.dataset.theme; return a ? a === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches; }
+function applyTheme() { if (S.theme) document.documentElement.dataset.theme = S.theme; else delete document.documentElement.dataset.theme; }
+
+/* ---------- events ---------- */
+document.addEventListener('click', e => {
+  if (pk && !pk.anchor.contains(e.target)) { closePicker(); return; }
+  const bd = e.target.closest('[data-backdrop]');
+  if (bd && e.target === bd) return closeModal();
+  const prio = e.target.closest('[data-prio]'); if (prio) { $$('#d-prio button').forEach(b => b.classList.toggle('on', b === prio)); return; }
+  const sw = e.target.closest('[data-col]'); if (sw) { $$('#pr-col button').forEach(b => b.classList.toggle('on', b === sw)); return; }
+  const nav = e.target.closest('[data-nav]'); if (nav) return go(nav.dataset.nav);
+  const a = e.target.closest('[data-act]'); if (!a) return;
+  const row = a.closest('.task'); const id = row?.dataset.id;
+  switch (a.dataset.act) {
+    case 'toggle': return toggleTask(id, view.type === 'done' ? null : row);
+    case 'open': return openTask(id);
+    case 'open-task': return openTask(a.dataset.id);
+    case 'collapse': { const t = task(id); t.collapsed = !t.collapsed; return commit(); }
+    case 'quick-add': { const c = a.dataset.ctx ? JSON.parse(a.dataset.ctx) : {}; return c.daily ? openDaily(null) : openQuickAdd(c); }
+    case 'daily-open': return openDaily(row.dataset.did);
+    case 'daily-tab': view = { type: 'daily', tab: a.dataset.tab }; editingNote = null; return commit();
+    case 'log-more': logDays += 14; return renderView();
+    case 'log-toggle': {
+      const d = S.daily.find(x => x.id === a.dataset.did), day = a.dataset.day; if (!d) return;
+      d.doneDates = d.doneDates.includes(day) ? d.doneDates.filter(x => x !== day) : [...d.doneDates, day].sort();
+      return commit();
+    }
+    case 'note-edit': editingNote = a.dataset.day; renderView(); return $('#note-text')?.focus();
+    case 'note-cancel': editingNote = null; return renderView();
+    case 'note-save': {
+      const v = $('#note-text').value.trim(); if (v) S.dailyNotes[a.dataset.day] = v; else delete S.dailyNotes[a.dataset.day];
+      editingNote = null; commit(); return toast('Poznámka uložena');
+    }
+    case 'new-group':
+      if (G.status !== 'ready') return toast('Skupiny fungují po přihlášení na claude.ai.');
+      if (!G.canWrite) return toast('K vytvoření skupiny potřebuješ oprávnění k úpravám.');
+      document.body.classList.remove('side-open'); return openGroupModal();
+    case 'save-group': return saveGroup();
+    case 'g-invite': return openInvite();
+    case 'g-share': return openShare(a.dataset.gid || (view.type === 'group' ? view.id : ''));
+    case 'share-copy': {
+      const inp = $('#share-url');
+      const fallback = () => { inp.focus(); inp.select(); toast('Odkaz je označený, zkopíruj ho (Ctrl+C nebo podržením prstu).'); };
+      try { navigator.clipboard.writeText(inp.value).then(() => { a.textContent = 'Zkopírováno'; toast('Odkaz zkopírován'); }, fallback); } catch (err) { fallback(); }
+      return;
+    }
+    case 'share-native': {
+      try {
+        navigator.share({ title: 'Úkolníček', text: shareData.text, url: shareData.url })
+          .catch(err => { if (err && err.name !== 'AbortError') toast('Nabídka sdílení tu není dostupná. Použij odkaz nebo tlačítka níže.'); });
+      } catch (err) { toast('Nabídka sdílení tu není dostupná. Použij odkaz nebo tlačítka níže.'); }
+      return;
+    }
+    case 'g-join': {
+      const g = grp(a.dataset.gid || view.id); if (!g) return;
+      G.db.doc('groups/' + g.id).update({ members: [...new Set([...(g.members || []), G.me])] })
+        .then(() => { toast(`Jsi členem skupiny ${g.name}`); if (view.type === 'groups') go('group:' + g.id); })
+        .catch(() => toast('Připojení se nepovedlo. Zkus to znovu.'));
+      return;
+    }
+    case 'g-leave': {
+      const g = grp(view.id); if (!g) return;
+      G.db.doc('groups/' + g.id).update({ members: (g.members || []).filter(m => m !== G.me) })
+        .then(() => toast(`Opustil(a) jsi skupinu ${g.name}`, null, () => G.db.doc('groups/' + g.id).update({ members: [...new Set([...(grp(g.id)?.members || []), G.me])] })))
+        .catch(() => toast('Nepovedlo se. Zkus to znovu.'));
+      return;
+    }
+    case 'g-delete': {
+      const g = grp(view.id); if (!g) return;
+      const gData = { ...g }; delete gData.id;
+      const tks = G.tasks.filter(t => t.groupId === g.id).map(t => ({ ...t }));
+      (async () => {
+        try {
+          await G.db.doc('groups/' + g.id).delete();
+          for (const t of tks) await G.db.doc('grouptasks/' + t.id).delete();
+        } catch (e) { return toast('Skupinu se nepodařilo smazat.'); }
+        go('groups');
+        toast(`Skupina ${g.name} smazána`, null, async () => {
+          await G.db.doc('groups/' + g.id).set(gData);
+          for (const t of tks) { const d = { ...t }; delete d.id; await G.db.doc('grouptasks/' + t.id).set(d); }
+        });
+      })();
+      return;
+    }
+    case 'g-open': return openGTask(row.dataset.gtid);
+    case 'g-save-task': return saveGTask();
+    case 'g-delete-task': {
+      const t = gtask($('[data-gtask]').dataset.gtask); if (!t) return closeModal();
+      const d = { ...t }; delete d.id; closeModal();
+      G.db.doc('grouptasks/' + t.id).delete()
+        .then(() => toast(`Smazáno: ${t.title}`, null, () => G.db.doc('grouptasks/' + t.id).set(d)))
+        .catch(() => toast('Úkol se nepodařilo smazat.'));
+      return;
+    }
+    case 'g-toggle': {
+      const t = gtask(row.dataset.gtid); if (!t) return;
+      if (!G.canWrite) return toast('Skupinu můžeš jen prohlížet.');
+      const ref = G.db.doc('grouptasks/' + t.id);
+      if (t.done) { ref.update({ done: false, doneBy: null, doneAt: null }).catch(() => toast('Nepovedlo se. Zkus to znovu.')); return; }
+      const fin = () => ref.update({ done: true, doneBy: G.me, doneAt: Date.now() })
+        .then(() => toast('Úkol skupiny dokončen', null, () => ref.update({ done: false, doneBy: null, doneAt: null })))
+        .catch(() => { toast('Nepovedlo se. Zkus to znovu.'); render(); });
+      if (reduced) return fin();
+      row.classList.add('completing'); return setTimeout(fin, 380);
+    }
+    case 'g-pick-due': {
+      const t = gtask(row.dataset.gtid); if (!t || !G.canWrite) return;
+      return openPicker(a, t.due, v => {
+        const old = { due: t.due || null, time: t.time || null };
+        G.db.doc('grouptasks/' + t.id).update(v ? { due: v } : { due: null, time: null })
+          .then(() => toast(v ? `Termín: ${dueLabel(v, t.time)}` : 'Termín odstraněn', null, () => G.db.doc('grouptasks/' + t.id).update(old)))
+          .catch(() => toast('Termín se nepodařilo změnit.'));
+      });
+    }
+    case 'send-group': {
+      if (G.status !== 'ready') return toast('Skupiny fungují po přihlášení na claude.ai.');
+      const tid = $('.detail').dataset.task;
+      const items = myGroups().map(g => ({ id: g.id, label: g.name, icon: `<span class="gdot" style="background:${esc(g.color)}"></span>`, count: (g.members || []).length + ' čl.' }));
+      return openMenu(a, 'Poslat do skupiny', items, `<p>Zatím nejsi v žádné skupině.</p><button type="button" class="mi" data-menu-act="new-group">${ic('plus')}<span>Vytvořit skupinu</span></button>`, gid => { saveTask(false); sendToGroup(tid, gid); });
+    }
+    case 'rem-done': case 'rem-snooze': case 'rem-close': {
+      const card = a.closest('.rem'); const o = remObj(card); card.remove(); if (!o) return;
+      if (a.dataset.act === 'rem-snooze') { o.snoozeUntil = Date.now() + 10 * 60000; save(); return toast('Připomenu znovu za 10 minut'); }
+      if (a.dataset.act === 'rem-done') {
+        if (card.dataset.kind === 'daily') { if (!dailyDone(o)) o.doneDates.push(today()); commit(); return toast('Splněno na dnes'); }
+        return toggleTask(o.id, null);
+      }
+      return;
+    }
+    case 'pick-due': {
+      const t = task(id);
+      return openPicker(a, t.due, v => {
+        const before = snap(); t.due = v; if (!v) { t.time = null; t.recur = null; }
+        commit(); toast(v ? `Termín: ${dueLabel(v, t.time)}` : 'Termín odstraněn', before);
+      });
+    }
+    case 'd-pick': return openPicker(a, a.dataset.value || null, v => {
+      a.dataset.value = v || ''; a.innerHTML = dateBtnHTML(v); a.className = `date-btn ${v ? dueClass(v) : 'none'}`;
+    });
+    case 'qa-time': case 'qa-remind': {
+      const inp = $('#qa-title'); const isTime = a.dataset.act === 'qa-time';
+      const set = v => { const c = JSON.parse(inp.dataset.ctx || '{}'); c[isTime ? 'pickedTime' : 'pickedRemind'] = v; inp.dataset.ctx = JSON.stringify(c); inp.dispatchEvent(new Event('input')); inp.focus(); };
+      const hours = ['08:00', '09:00', '12:00', '15:00', '18:00', '20:00'].map(h => [h, h]);
+      if (isTime) return openTimePicker(a, a.dataset.value, set, { title: 'Čas úkolu', presets: hours, clear: 'Bez času' });
+      const tt = a.dataset.time; let presets = hours;
+      if (tt) presets = [['V čase úkolu', tt], ['15 min předem', minus(tt, 15)], ['1 h předem', minus(tt, 60)], ['3 h předem', minus(tt, 180)]].filter(p => p[1]).concat(hours.filter(h => h[1] < tt));
+      return openTimePicker(a, a.dataset.value, set, { title: 'Upozornění', sub: tt ? `Úkol začíná v ${tt}` : 'Zobrazí se se zvukem, když máš Úkolníček otevřený', presets, clear: 'Bez upozornění' });
+    }
+    case 'qa-pick': {
+      const inp = $('#qa-title');
+      return openPicker(a, a.dataset.value || null, v => {
+        const c = JSON.parse(inp.dataset.ctx || '{}'); c.picked = v; inp.dataset.ctx = JSON.stringify(c);
+        inp.dispatchEvent(new Event('input')); inp.focus();
+      });
+    }
+    case 'save-daily': return saveDaily();
+    case 'delete-daily': {
+      const did = $('[data-daily-id]').dataset.dailyId; const d = S.daily.find(x => x.id === did); const before = snap();
+      S.daily = S.daily.filter(x => x.id !== did); closeModal(); commit(); return toast(`Smazáno: ${d.title}`, before);
+    }
+    case 'daily-toggle': {
+      const d = S.daily.find(x => x.id === row.dataset.did); const before = snap(); const t = today();
+      if (dailyDone(d)) { d.doneDates = d.doneDates.filter(x => x !== t); return commit(); }
+      d.doneDates = [...d.doneDates.filter(x => x >= addDays(t, -400)), t];
+      const fin = () => { commit(); toast(S.daily.every(dailyDone) ? 'Všechny denní úkoly máš na dnes splněné' : 'Splněno na dnes', before); };
+      if (reduced) return fin();
+      row.classList.add('completing'); return setTimeout(fin, 380);
+    }
+    case 'qa-save': return saveQuickAdd();
+    case 'close-modal': return closeModal();
+    case 'save-task': return saveTask();
+    case 'delete-task': return deleteTask($('.detail').dataset.task);
+    case 'sub-toggle': {
+      const k = task(a.closest('.sub-row').dataset.id); const parentId = $('.detail').dataset.task;
+      saveTask(false);
+      k.done = !k.done; k.doneAt = k.done ? Date.now() : null; save(); render(); return openTask(parentId);
+    }
+    case 'new-project': return openProject();
+    case 'edit-project': return openProject(view.id);
+    case 'save-project': return saveProject();
+    case 'delete-project': {
+      const p = proj(view.id); const before = snap();
+      S.projects = S.projects.filter(x => x.id !== p.id); S.tasks = S.tasks.filter(t => t.projectId !== p.id);
+      view = { type: 'inbox' }; commit(); return toast(`Projekt „${p.name}“ smazán`, before);
+    }
+    case 'reschedule-overdue': {
+      const before = snap(); const t = today(); let n = 0;
+      active().forEach(x => { if (x.due && x.due < t) { x.due = t; n++; } });
+      commit(); return toast(`Přeplánováno na dnes: ${n}`, before);
+    }
+    case 'clear-sample': {
+      const before = snap();
+      S.tasks = S.tasks.filter(t => !t.sample); S.daily = S.daily.filter(d => !d.sample); S.projects = S.projects.filter(p => !p.sample);
+      S.tasks.forEach(t => { if (t.projectId !== 'inbox' && !proj(t.projectId)) t.projectId = 'inbox'; });
+      if (view.type === 'project' && !proj(view.id)) view = { type: 'inbox' };
+      commit(); return toast('Ukázková data smazána', before);
+    }
+    case 'theme': { S.theme = effectiveDark() ? 'light' : 'dark'; applyTheme(); return commit(); }
+    case 'open-side': return document.body.classList.add('side-open');
+    case 'close-side': return document.body.classList.remove('side-open');
+  }
+});
+
+document.addEventListener('change', e => {
+  const s = e.target.closest && e.target.closest('[data-remsel]'); if (!s) return;
+  const f = $(`#${s.dataset.remsel}-rtime-f`); f.hidden = s.value !== 'custom';
+  if (!f.hidden) $(`#${s.dataset.remsel}-rtime`).focus();
+});
+
+document.addEventListener('pointermove', e => {
+  const tip = $('#tip'); const el = e.target.closest && e.target.closest('[data-tip]');
+  if (!el) { tip.hidden = true; return; }
+  tip.textContent = el.dataset.tip; tip.hidden = false;
+  const w = tip.offsetWidth, h = tip.offsetHeight;
+  tip.style.left = Math.min(innerWidth - w - 8, Math.max(8, e.clientX + 12)) + 'px';
+  tip.style.top = (e.clientY - h - 12 < 8 ? e.clientY + 16 : e.clientY - h - 12) + 'px';
+});
+$('#content').addEventListener('scroll', () => { $('#tip').hidden = true; });
+
+$('#search').addEventListener('input', e => {
+  const q = e.target.value;
+  if (q.trim()) { view = { type: 'search', q }; renderView(); renderSide(); }
+  else if (view.type === 'search') { view = { type: 'today' }; render(); }
+});
+
+document.addEventListener('keydown', e => {
+  const tag = e.target.tagName; const typing = ['INPUT', 'TEXTAREA', 'SELECT'].includes(tag) || e.target.isContentEditable;
+  if (e.key === 'Escape') {
+    if (pk) { e.preventDefault(); return closePicker(); }
+    if (modalKind) { e.preventDefault(); return closeModal(); }
+    if (document.body.classList.contains('side-open')) return document.body.classList.remove('side-open');
+    if (e.target.id === 'search') { e.target.value = ''; e.target.blur(); if (view.type === 'search') { view = { type: 'today' }; render(); } }
+    return;
+  }
+  if (e.key === 'Enter' && !e.isComposing) {
+    if (modalKind === 'quick' && (e.target.id === 'qa-title' || e.target.id === 'qa-desc')) { e.preventDefault(); return saveQuickAdd(); }
+    if (modalKind === 'task') {
+      if (e.target.id === 'd-sub') {
+        e.preventDefault(); const v = e.target.value.trim(); if (!v) return;
+        const parentId = $('.detail').dataset.task; saveTask(false);
+        const p = task(parentId); const r = parseQuick(v);
+        addTask({ title: r.title || v, parentId, projectId: p.projectId, due: r.due, time: r.time, priority: r.priority || 4, labels: r.labels, recur: r.recur });
+        save(); render(); openTask(parentId); return $('#d-sub').focus();
+      }
+      if (tag === 'TEXTAREA' && !(e.metaKey || e.ctrlKey)) return;
+      if (tag === 'BUTTON') return;
+      e.preventDefault(); return saveTask();
+    }
+    if (modalKind === 'project' && tag === 'INPUT') { e.preventDefault(); return saveProject(); }
+    if (modalKind === 'daily' && tag === 'INPUT') { e.preventDefault(); return saveDaily(); }
+    if (modalKind === 'group' && tag === 'INPUT') { e.preventDefault(); return saveGroup(); }
+    if (modalKind === 'gtask' && (tag === 'INPUT' || ((e.metaKey || e.ctrlKey) && tag === 'TEXTAREA'))) { e.preventDefault(); return saveGTask(); }
+  }
+  if (typing || modalKind || e.metaKey || e.ctrlKey || e.altKey) return;
+  if (e.key === 'q' || e.key === 'Q') { e.preventDefault(); openQuickAdd(); }
+  else if (e.key === '/') { e.preventDefault(); $('#search').focus(); }
+});
+
+/* ---------- drag & drop ---------- */
+let drag = null;
+const clearMarks = () => $$('.drop-before,.drop-after,.drop-hit,.drop-zone-hit').forEach(el => el.classList.remove('drop-before', 'drop-after', 'drop-hit', 'drop-zone-hit'));
+document.addEventListener('dragstart', e => {
+  const row = e.target.closest && e.target.closest('.task[draggable="true"]');
+  const pi = e.target.closest && e.target.closest('.proj-item[draggable="true"]');
+  if (row && row.dataset.did) { drag = { type: 'daily', id: row.dataset.did }; row.classList.add('dragging'); }
+  else if (row) { drag = { type: 'task', id: row.dataset.id }; row.classList.add('dragging'); }
+  else if (pi) { drag = { type: 'project', id: pi.dataset.pid }; pi.classList.add('dragging'); }
+  else return;
+  e.dataTransfer.effectAllowed = 'move';
+  try { e.dataTransfer.setData('text/plain', drag.id); } catch (err) {}
+});
+document.addEventListener('dragover', e => {
+  if (!drag) return;
+  clearMarks();
+  if (drag.type === 'project') {
+    const pi = e.target.closest('.proj-item'); if (!pi || pi.dataset.pid === drag.id) return;
+    e.preventDefault(); const r = pi.getBoundingClientRect();
+    pi.classList.add(e.clientY < r.top + r.height / 2 ? 'drop-before' : 'drop-after'); return;
+  }
+  if (drag.type === 'daily') {
+    const dr = e.target.closest('.daily-row'); if (!dr || dr.dataset.did === drag.id) return;
+    e.preventDefault(); const r = dr.getBoundingClientRect();
+    dr.classList.add(e.clientY < r.top + r.height / 2 ? 'drop-before' : 'drop-after'); return;
+  }
+  const navDrop = e.target.closest('[data-drop]');
+  if (navDrop) { e.preventDefault(); navDrop.classList.add('drop-hit'); return; }
+  const row = e.target.closest('.list > .task');
+  if (row && (row.dataset.did || row.dataset.gtid)) return;
+  if (row && row.dataset.id !== drag.id) {
+    const list = row.parentElement;
+    if (list.dataset.parent !== undefined && list.dataset.parent && isDesc(list.dataset.parent, drag.id)) return;
+    if (!list.dataset.parent && list.dataset.parent !== '' && !list.dataset.date && !list.dataset.reorder && !list.contains($(`.task[data-id="${drag.id}"]`))) return;
+    e.preventDefault(); const r = row.getBoundingClientRect();
+    row.classList.add(e.clientY < r.top + r.height / 2 ? 'drop-before' : 'drop-after'); return;
+  }
+  const zone = e.target.closest('.list[data-zone]') || (e.target.closest('.group') && $('.list[data-zone]', e.target.closest('.group')));
+  if (zone) { e.preventDefault(); zone.classList.add('drop-zone-hit'); }
+});
+document.addEventListener('drop', e => {
+  if (!drag) return; e.preventDefault();
+  const d = drag; const before = snap();
+  const marked = $('.drop-before,.drop-after'); const navHit = $('.drop-hit'); const zone = $('.drop-zone-hit');
+  if (d.type === 'project') {
+    if (marked) {
+      const list = [...S.projects].sort((a, b) => a.order - b.order).filter(p => p.id !== d.id);
+      const idx = list.findIndex(p => p.id === marked.dataset.pid) + (marked.classList.contains('drop-after') ? 1 : 0);
+      list.splice(idx, 0, proj(d.id)); list.forEach((p, i) => p.order = i); commit();
+    }
+    return endDrag();
+  }
+  if (d.type === 'daily') {
+    if (marked && marked.dataset.did) {
+      const list = dailyList().filter(x => x.id !== d.id);
+      const idx = list.findIndex(x => x.id === marked.dataset.did) + (marked.classList.contains('drop-after') ? 1 : 0);
+      list.splice(idx, 0, S.daily.find(x => x.id === d.id)); list.forEach((x, i) => x.order = i); commit();
+    }
+    return endDrag();
+  }
+  const t = task(d.id); if (!t) return endDrag();
+  if (navHit) {
+    const target = navHit.dataset.drop;
+    if (target.startsWith('group:')) { endDrag(); return sendToGroup(t.id, target.slice(6)); }
+    if (target === 'today') { t.due = today(); toast(`Termín: dnes`, before); }
+    else { const pid = target === 'inbox' ? 'inbox' : target.slice(8); t.projectId = pid; t.parentId = null; descendants(t.id).forEach(k => k.projectId = pid); toast(`Přesunuto do: ${projName(pid)}`, before); }
+    commit(); return endDrag();
+  }
+  let list = marked ? marked.parentElement : zone;
+  if (!list) return endDrag();
+  if (list.dataset.date) t.due = list.dataset.date;
+  if (list.dataset.project !== undefined) {
+    const np = list.dataset.parent || null;
+    if (np && isDesc(np, t.id)) return endDrag();
+    t.parentId = np; t.projectId = list.dataset.project; descendants(t.id).forEach(k => k.projectId = t.projectId);
+  }
+  const ids = $$(':scope > .task', list).map(r => r.dataset.id).filter(x => x !== t.id);
+  let idx = ids.length;
+  if (marked) idx = ids.indexOf(marked.dataset.id) + (marked.classList.contains('drop-after') ? 1 : 0);
+  ids.splice(idx, 0, t.id);
+  const members = ids.map(task).filter(Boolean);
+  const orders = members.map(m => m.order).sort((a, b) => a - b);
+  members.forEach((m, i) => m.order = orders[i]);
+  if (new Set(orders).size !== orders.length) members.forEach((m, i) => m.order = orders[0] + i * 0.001 + i);
+  commit(); endDrag();
+});
+document.addEventListener('dragend', endDrag);
+function endDrag() { drag = null; clearMarks(); $$('.dragging').forEach(el => el.classList.remove('dragging')); }
+
+/* ---------- boot ---------- */
+S = load();
+view = S.view && S.view.type !== 'search' ? S.view : { type: 'today' };
+delete S.view;
+if (!Array.isArray(S.daily)) S.daily = seedDaily();
+migrateDaily();
+const hashGroup = () => { const h = location.hash || ''; if (h.startsWith('#g-') && h.length > 3) { view = { type: 'group', id: h.slice(3) }; return true; } return false; };
+hashGroup();
+addEventListener('hashchange', () => { if (hashGroup()) render(); });
+applyTheme();
+commit();
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => renderSide());
+initGroups();
+setTimeout(checkReminders, 800);
+setInterval(checkReminders, 15000);
+// refresh relative dates after midnight
+let lastDay = today();
+setInterval(() => { if (today() !== lastDay) { lastDay = today(); render(); } }, 60e3);
+})();
+</script>
+
+</body></html>
